@@ -38,7 +38,7 @@ dataSources:
     name: NonfungiblePositionManager
     network: rootstock
     source:
-      address: '0x267DD4Cfe796baE0A4E891E37426Afe4f148bB3a'
+      address: '0xbf74d090b19E468B7bAAeFdC04B5Bd51ae22C3CB'
       abi: NonfungiblePositionManager
       startBlock: 6765770 
     mapping:
