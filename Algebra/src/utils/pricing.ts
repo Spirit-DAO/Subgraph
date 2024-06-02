@@ -4,14 +4,18 @@ import { Bundle, Pool, Token } from './../types/schema'
 import { BigDecimal, BigInt } from '@graphprotocol/graph-ts'
 import { exponentToBigDecimal, safeDiv } from '../utils/index'
 
-const WMatic_ADDRESS = '0xaaf221d04f50e2ac32b2b21f679997c2d7a835e4'
-const USDC_WMatic_03_POOL = '0x04cd93C112fCba174Da776d26cb52E822f289F50'
+const WMatic_ADDRESS = '0x21be370D5312f44cB42ce377BC9b8a0cEF1A4C83'.toLowerCase()
+const USDC_WMatic_03_POOL = '0xe11135564827675cad4305f45E3A79d3Be778F63'.toLowerCase()
 
 // token where amounts should contribute to tracked volume and liquidity
 // usually tokens that many tokens are paired with s
 export let WHITELIST_TOKENS: string[] = [
-  '0xaaf221d04f50e2ac32b2b21f679997c2d7a835e4', // WMATIC
-  '0x3AB0901E3826Eb4728d49fc2479c2Bc389C55D6F', // USDC
+  '0x21be370D5312f44cB42ce377BC9b8a0cEF1A4C83'.toLowerCase(), // WMATIC
+  '0x28a92dde19D9989F39A49905d7C9C2FAc7799bDf'.toLowerCase(), // lzUSDC
+  '0x1B6382DBDEa11d97f24495C9A90b7c88469134a4'.toLowerCase(), // axlUSDC
+  '0x2F733095B80A04b38b0D10cC884524a3d09b836a'.toLowerCase(), // USDC.e
+  '0x5Cc61A78F164885776AA610fb0FE1257df78E59B'.toLowerCase(), // SPIRIT
+  '0x07cc4ce4537c209f83d83f856f142e0d0674fd75'.toLowerCase(), // EMERALD
 ]
 
 let MINIMUM_Matic_LOCKED = BigDecimal.fromString('0')
@@ -19,10 +23,10 @@ let MINIMUM_Matic_LOCKED = BigDecimal.fromString('0')
 let Q192 = Math.pow(2, 192)
 
 let STABLE_COINS: string[] = [
-    '0x3AB0901E3826Eb4728d49fc2479c2Bc389C55D6F', // SUDT
-    '0xbBFa0a2A9E2d1c4B92E87df66863dAf65490Ce75'
+    '0x28a92dde19D9989F39A49905d7C9C2FAc7799bDf'.toLowerCase(), // lzUSDC
+	'0x1B6382DBDEa11d97f24495C9A90b7c88469134a4'.toLowerCase(), // axlUSDC
+	'0x2F733095B80A04b38b0D10cC884524a3d09b836a'.toLowerCase(), // USDC.e
 ]
-
 
 export function priceToTokenPrices(price: BigInt, token0: Token, token1: Token): BigDecimal[] {
   let num = price.times(price).toBigDecimal()
@@ -39,7 +43,7 @@ export function priceToTokenPrices(price: BigInt, token0: Token, token1: Token):
 export function getEthPriceInUSD(): BigDecimal {
   let usdcPool = Pool.load(USDC_WMatic_03_POOL) // dai is token0
   if (usdcPool !== null) {
-    return usdcPool.token0Price
+    return usdcPool.token1Price
   } else {
     return ZERO_BD
   }
