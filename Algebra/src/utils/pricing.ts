@@ -10,12 +10,10 @@ const USDC_WMatic_03_POOL = '0xe11135564827675cad4305f45E3A79d3Be778F63'.toLower
 // token where amounts should contribute to tracked volume and liquidity
 // usually tokens that many tokens are paired with s
 export let WHITELIST_TOKENS: string[] = [
-  '0x21be370D5312f44cB42ce377BC9b8a0cEF1A4C83'.toLowerCase(), // WMATIC
-  '0x28a92dde19D9989F39A49905d7C9C2FAc7799bDf'.toLowerCase(), // lzUSDC
-  '0x1B6382DBDEa11d97f24495C9A90b7c88469134a4'.toLowerCase(), // axlUSDC
-  '0x2F733095B80A04b38b0D10cC884524a3d09b836a'.toLowerCase(), // USDC.e
-  '0x5Cc61A78F164885776AA610fb0FE1257df78E59B'.toLowerCase(), // SPIRIT
-  '0x07cc4ce4537c209f83d83f856f142e0d0674fd75'.toLowerCase(), // EMERALD
+  '0xaE85Bf723A9e74d6c663dd226996AC1b8d075AA9'.toLowerCase(), // WTLOS
+  '0x44DCe9B4928c80DfE476BE493bCaA87F3E192026'.toLowerCase(), // WTLOS
+  '0x1888A7b2272b1dF4C7dFbc95C60c86C9623A404a'.toLowerCase(), // lzUSDC
+  '0xAA6d56767B552E2A9b7294fB21734bf936d4d06e'.toLowerCase(), // axlUSDC
 ]
 
 let MINIMUM_Matic_LOCKED = BigDecimal.fromString('0')
@@ -23,9 +21,8 @@ let MINIMUM_Matic_LOCKED = BigDecimal.fromString('0')
 let Q192 = Math.pow(2, 192)
 
 let STABLE_COINS: string[] = [
-    '0x28a92dde19D9989F39A49905d7C9C2FAc7799bDf'.toLowerCase(), // lzUSDC
-	'0x1B6382DBDEa11d97f24495C9A90b7c88469134a4'.toLowerCase(), // axlUSDC
-	'0x2F733095B80A04b38b0D10cC884524a3d09b836a'.toLowerCase(), // USDC.e
+    '0x1888A7b2272b1dF4C7dFbc95C60c86C9623A404a'.toLowerCase(), // lzUSDC
+	'0xAA6d56767B552E2A9b7294fB21734bf936d4d06e'.toLowerCase(), // axlUSDC
 ]
 
 export function priceToTokenPrices(price: BigInt, token0: Token, token1: Token): BigDecimal[] {
