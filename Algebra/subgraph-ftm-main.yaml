@@ -5,11 +5,11 @@ schema:
 dataSources:
   - kind: ethereum/contract
     name: Factory
-    network: rootstock
+    network: fantom
     source:
-      address: '0xe997A4958F061e5FAc3fFFcF29826278069cF10E'
+      address: '0xb860200BD68dc39cEAfd6ebb82883f189f4CdA76'
       abi: Factory
-      startBlock: 6765770 
+      startBlock: 78654346 
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -36,11 +36,11 @@ dataSources:
           handler: handleNewCommunityFee
   - kind: ethereum/contract
     name: NonfungiblePositionManager
-    network: rootstock
+    network: fantom
     source:
-      address: '0x5d4dCc9dCD6D804E17Ac4305b0e75A6C62764dde'
+      address: '0x5084E9fDF9264489A14E77c011073D757e572bB4'
       abi: NonfungiblePositionManager
-      startBlock: 6765770 
+      startBlock: 78654545 
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -71,7 +71,7 @@ dataSources:
 templates:
   - kind: ethereum/contract
     name: Pool
-    network: rootstock
+    network: fantom
     source:
       abi: Pool
     mapping:
