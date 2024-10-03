@@ -523,6 +523,10 @@ type PoolDayData @entity {
   low: BigDecimal!
   # close price of token0
   close: BigDecimal!
+  # number token 0 fees
+  fees0: BigDecimal!
+  # number token 1 fees
+  fees1: BigDecimal!
 }
 
 type PoolFeeData @entity{
@@ -580,9 +584,9 @@ type PoolHourData @entity {
   # close price of token0
   close: BigDecimal!
   # number token 0 fees
-  fees0: BigInt!
+  fees0: BigDecimal!
   # number token 1 fees
-  fees1: BigInt!
+  fees1: BigDecimal!
 }
 
 type TickHourData @entity {

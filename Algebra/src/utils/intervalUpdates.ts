@@ -142,8 +142,8 @@ export function updatePoolHourData(event: ethereum.Event): PoolHourData {
   if (poolHourData === null) {
     poolHourData = new PoolHourData(hourPoolID)
     poolHourData.periodStartUnix = hourStartUnix
-    poolHourData.fees0 = ZERO_BI
-    poolHourData.fees1 = ZERO_BI
+    poolHourData.fees0 = ZERO_BD
+    poolHourData.fees1 = ZERO_BD
     poolHourData.pool = pool.id
     // things that dont get initialized always
     poolHourData.volumeToken0 = ZERO_BD
