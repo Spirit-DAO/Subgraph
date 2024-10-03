@@ -71,7 +71,9 @@ export function updatePoolDayData(event: ethereum.Event): PoolDayData {
     poolDayData.open = pool.token0Price
     poolDayData.high = pool.token0Price
     poolDayData.low = pool.token0Price
-    poolDayData.close = pool.token0Price
+	poolDayData.close = pool.token0Price
+	poolDayData.fees0 = ZERO_BD
+	poolDayData.fees1 = ZERO_BD
   }
 
   if (pool.token0Price.gt(poolDayData.high)) {
