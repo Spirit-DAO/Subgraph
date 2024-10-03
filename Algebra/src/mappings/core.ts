@@ -522,13 +522,15 @@ export function handleSwap(event: SwapEvent): void {
   poolDayData.volumeToken1 = poolDayData.volumeToken1.plus(amount1Abs)
   poolDayData.feesUSD = poolDayData.feesUSD.plus(feesUSD)
   poolDayData.fees0 = poolDayData.fees0.plus(fees0)
-  poolDayData.fees1 = poolDayData.fees0.plus(fees1)
+  poolDayData.fees1 = poolDayData.fees1.plus(fees1)
 
   poolHourData.untrackedVolumeUSD = poolHourData.untrackedVolumeUSD.plus(amountTotalUSDUntracked)
   poolHourData.volumeUSD = poolHourData.volumeUSD.plus(amountTotalUSDTracked)
   poolHourData.volumeToken0 = poolHourData.volumeToken0.plus(amount0Abs)
   poolHourData.volumeToken1 = poolHourData.volumeToken1.plus(amount1Abs)
   poolHourData.feesUSD = poolHourData.feesUSD.plus(feesUSD)
+  poolHourData.fees0 = poolHourData.fees0.plus(fees0)
+  poolHourData.fees1 = poolHourData.fees1.plus(fees1)
 
   token0DayData.volume = token0DayData.volume.plus(amount0Abs)
   token0DayData.volumeUSD = token0DayData.volumeUSD.plus(amountTotalUSDTracked)
