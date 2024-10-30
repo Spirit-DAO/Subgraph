@@ -7,7 +7,7 @@ dataSources:
     name: Factory
     network: sonic
     source:
-      address: '0x2e7bcddcd74ade69b67e816cb32db6f0b709cab5'
+      address: '0x100c9102592Cd6ded9df0e6B722A131Bf1e6D565'
       abi: Factory
       startBlock: 82767320 
     mapping:

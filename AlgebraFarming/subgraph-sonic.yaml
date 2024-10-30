@@ -1,0 +1,81 @@
+specVersion: 0.0.4
+description: Algebra is a Innovative DEX with concentrated liquidity, adaptive fee, build-in farming etc.
+schema:
+  file: ./schema.graphql
+dataSources:
+- kind: ethereum/contract
+  name: NonfungiblePositionManager
+  network: sonic
+  source:
+      address: '0x4D508287C9469F94E74a90c072762f6d4728382B'
+      abi: NonfungiblePositionManager
+      startBlock: 82767537
+  mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: ./src/mappings/position-manager.ts
+      entities:
+        - Deposit
+        - Token
+      abis:
+        - name: NonfungiblePositionManager
+          file: ./abis/NonfungiblePositionManager.json
+        - name: ERC20
+          file: ./abis/ERC20.json
+        - name: ERC20SymbolBytes
+          file: ./abis/ERC20SymbolBytes.json
+        - name: ERC20NameBytes
+          file: ./abis/ERC20NameBytes.json
+      eventHandlers:
+        - event: IncreaseLiquidity(indexed uint256,uint128,uint128,uint256,uint256,address)
+          handler: handleIncreaseLiquidity
+        - event: Transfer(indexed address,indexed address,indexed uint256)
+          handler: handleTransfer
+        - event: DecreaseLiquidity(indexed uint256,uint128,uint256,uint256)
+          handler: handleDecreaseLiquidity
+- kind: ethereum/contract
+  name: EternalFarming
+  network: sonic
+  source:
+      address: '0xD218bC0255E34af0caf665746d838c559C85352E'
+      abi: EternalFarming
+      startBlock: 82767660
+  mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.6
+      language: wasm/assemblyscript
+      file: ./src/mappings/eternalFarming.ts
+      entities:
+        - Deposit
+        - Token
+        - EternalFarming
+        - Reward
+      abis:
+        - name: EternalFarming
+          file: ./abis/EternalFarming.json
+        - name: ERC20
+          file: ./abis/ERC20.json
+        - name: ERC20SymbolBytes
+          file: ./abis/ERC20SymbolBytes.json
+        - name: ERC20NameBytes
+          file: ./abis/ERC20NameBytes.json
+      eventHandlers:
+        - event: EternalFarmingCreated(indexed address,indexed address,indexed address,address,uint256,uint256,uint256,uint24)
+          handler: handleIncentiveCreated
+        - event: RewardClaimed(indexed address,uint256,indexed address,indexed address)
+          handler: handleRewardClaimed
+        - event: FarmEntered(indexed uint256,indexed bytes32,uint128)
+          handler: handleTokenStaked
+        - event: FarmEnded(indexed uint256,indexed bytes32,indexed address,address,address,uint256,uint256)
+          handler: handleTokenUnstaked
+        - event: IncentiveDeactivated(indexed bytes32)
+          handler: handleDeactivate
+        - event: RewardsRatesChanged(uint128,uint128,bytes32)
+          handler: handleRewardsRatesChanged
+        - event: RewardsAdded(uint256,uint256,bytes32)
+          handler: handleRewardsAdded
+        - event: RewardsCollected(uint256,bytes32,uint256,uint256)
+          handler: handleCollect
+        - event: RewardAmountsDecreased(uint256,uint256,bytes32)
+          handler: handleRewardDecreased
