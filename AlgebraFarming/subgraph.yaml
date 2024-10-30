@@ -5,11 +5,11 @@ schema:
 dataSources:
 - kind: ethereum/contract
   name: NonfungiblePositionManager
-  network: fantom
+  network: sonic
   source:
-      address: '0x5d4dCc9dCD6D804E17Ac4305b0e75A6C62764dde'
+      address: '0x4D508287C9469F94E74a90c072762f6d4728382B'
       abi: NonfungiblePositionManager
-      startBlock: 315737079
+      startBlock: 82767537
   mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -36,11 +36,11 @@ dataSources:
           handler: handleDecreaseLiquidity
 - kind: ethereum/contract
   name: EternalFarming
-  network: fantom
+  network: sonic
   source:
-      address: '0xbA22a6f5c3EfEbb35f7a31Ff2B3506d3E34050FE'
+      address: '0xD218bC0255E34af0caf665746d838c559C85352E'
       abi: EternalFarming
-      startBlock: 315737385
+      startBlock: 82767660
   mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
