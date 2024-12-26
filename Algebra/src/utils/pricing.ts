@@ -4,15 +4,16 @@ import { Bundle, Pool, Token } from './../types/schema'
 import { BigDecimal, BigInt } from '@graphprotocol/graph-ts'
 import { exponentToBigDecimal, safeDiv } from '../utils/index'
 
-const WMatic_ADDRESS = '0x542fda317318ebf1d3deaf76e0b632741a7e677d'
-const USDC_WMatic_03_POOL = '0xb104f0535a35a69880dab51008756c31d47dbf0f'
+const WMatic_ADDRESS = '0x039e2fB66102314Ce7b64Ce5Ce3E5183bc94aD38'
+const USDC_WMatic_03_POOL = '0x9f46dd8f2a4016c26c1cf1f4ef90e5e1928d756b'
 
 // token where amounts should contribute to tracked volume and liquidity
 // usually tokens that many tokens are paired with s
 export let WHITELIST_TOKENS: string[] = [
   '0x039e2fB66102314Ce7b64Ce5Ce3E5183bc94aD38', // WS
-  '0x309C92261178fA0CF748A855e90Ae73FDb79EBc7', // WETH
+  '0x50c42dEAcD8Fc9773493ED674b675bE577f2634b', // WETH
   '0x29219dd400f2Bf60E5a23d13Be72B486D4038894', // USDC
+  '0x005851f943ee2957B1748957F26319e4f9EdeBC1', //
 ]
 
 let MINIMUM_Matic_LOCKED = BigDecimal.fromString('0')
@@ -20,7 +21,8 @@ let MINIMUM_Matic_LOCKED = BigDecimal.fromString('0')
 let Q192 = Math.pow(2, 192)
 
 let STABLE_COINS: string[] = [
-  '0x29219dd400f2Bf60E5a23d13Be72B486D4038894', // USDC
+    '0x29219dd400f2Bf60E5a23d13Be72B486D4038894', // USDC
+    
 ]
 
 export function priceToTokenPrices(price: BigInt, token0: Token, token1: Token): BigDecimal[] {
