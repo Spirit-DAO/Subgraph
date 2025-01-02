@@ -381,6 +381,7 @@ export function handleSwap(event: SwapEvent): void {
 
   let feesMatic = amountTotalMaticTracked.times(pool.fee.toBigDecimal()).div(BigDecimal.fromString('1000000'))
   let feesUSD = amountTotalUSDTracked.times(pool.fee.toBigDecimal()).div(BigDecimal.fromString('1000000'))
+  let feesCommunityUSD = amountTotalUSDTracked.times(pool.fee.times(pool.communityFee).toBigDecimal()).div(BigDecimal.fromString('1000000000'))
   let untrackedFees = amountTotalUSDUntracked.times(pool.fee.toBigDecimal()).div(BigDecimal.fromString('1000000'))
 
 
@@ -521,6 +522,7 @@ export function handleSwap(event: SwapEvent): void {
   poolDayData.volumeToken0 = poolDayData.volumeToken0.plus(amount0Abs)
   poolDayData.volumeToken1 = poolDayData.volumeToken1.plus(amount1Abs)
   poolDayData.feesUSD = poolDayData.feesUSD.plus(feesUSD)
+  poolDayData.feesCommunityUSD = poolDayData.feesCommunityUSD.plus(feesCommunityUSD)
   poolDayData.fees0 = poolDayData.fees0.plus(fees0)
   poolDayData.fees1 = poolDayData.fees1.plus(fees1)
 
@@ -529,6 +531,7 @@ export function handleSwap(event: SwapEvent): void {
   poolHourData.volumeToken0 = poolHourData.volumeToken0.plus(amount0Abs)
   poolHourData.volumeToken1 = poolHourData.volumeToken1.plus(amount1Abs)
   poolHourData.feesUSD = poolHourData.feesUSD.plus(feesUSD)
+  poolHourData.feesCommunityUSD = poolHourData.feesCommunityUSD.plus(feesCommunityUSD)
   poolHourData.fees0 = poolHourData.fees0.plus(fees0)
   poolHourData.fees1 = poolHourData.fees1.plus(fees1)
 

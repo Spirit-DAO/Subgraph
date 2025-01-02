@@ -513,6 +513,8 @@ type PoolDayData @entity {
   volumeUSD: BigDecimal!
   # fees in USD
   feesUSD: BigDecimal!
+  # community fees in USD
+  feesCommunityUSD: BigDecimal!
   # numebr of transactions during period
   txCount: BigInt!
   # opening price of token0
@@ -572,6 +574,8 @@ type PoolHourData @entity {
   volumeUSD: BigDecimal!
   # fees in USD
   feesUSD: BigDecimal!
+  # community fees in USD
+  feesCommunityUSD: BigDecimal!
   # numebr of transactions during period
   untrackedVolumeUSD: BigDecimal!
   txCount: BigInt!
