@@ -7,9 +7,9 @@ dataSources:
   name: NonfungiblePositionManager
   network: nibiru-chain-testnet-1
   source:
-      address: '0x79CB4664EBe30ff989e605b048B402c54b9dc9e0'
+      address: '0x2bBa614E4DEcAe15621121fB5CB46C970b75989a'
       abi: NonfungiblePositionManager
-      startBlock: 10992816
+      startBlock: 11122911
   mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -38,9 +38,9 @@ dataSources:
   name: EternalFarming
   network: nibiru-chain-testnet-1
   source:
-      address: '0xfeAf421c437592Dd8a137f6ECeEA0bf820B6355d'
+      address: '0x271B8eA9de9f2A27341524d4AD8a0d3EA1bC8243'
       abi: EternalFarming
-      startBlock: 10992841
+      startBlock: 11122929
   mapping:
       kind: ethereum/events
       apiVersion: 0.0.6

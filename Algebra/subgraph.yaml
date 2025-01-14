@@ -7,9 +7,9 @@ dataSources:
     name: Factory
     network: nibiru-chain-testnet-1
     source:
-      address: '0xb860200BD68dc39cEAfd6ebb82883f189f4CdA76'
+      address: '0x8C7e833a1CB4e95E5d9CAc504a98Af31264C6440'
       abi: Factory
-      startBlock: 10462813 
+      startBlock: 11122869 
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -38,9 +38,9 @@ dataSources:
     name: NonfungiblePositionManager
     network: nibiru-chain-testnet-1
     source:
-      address: '0x79CB4664EBe30ff989e605b048B402c54b9dc9e0'
+      address: '0x2bBa614E4DEcAe15621121fB5CB46C970b75989a'
       abi: NonfungiblePositionManager
-      startBlock: 10992816 
+      startBlock: 11122911 
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
