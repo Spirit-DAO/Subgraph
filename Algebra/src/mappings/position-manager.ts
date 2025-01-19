@@ -10,6 +10,7 @@ import { Position, PositionSnapshot, Token} from '../types/schema'
 import { ADDRESS_ZERO, factoryContract, ZERO_BD, ZERO_BI, pools_list} from '../utils/constants'
 import { Address, BigInt, ethereum } from '@graphprotocol/graph-ts'
 import { convertTokenToDecimal, loadTransaction } from '../utils'
+import { getEthPriceInUSD } from '../utils/pricing'
 
 
 
@@ -50,7 +51,9 @@ function getPosition(event: ethereum.Event, tokenId: BigInt): Position | null {
       position.collectedToken0 = ZERO_BD
       position.collectedToken1 = ZERO_BD
       position.collectedFeesToken0 = ZERO_BD
-      position.collectedFeesToken1 = ZERO_BD
+	  position.collectedFeesToken1 = ZERO_BD
+	  position.collectedFeesToken0USD = ZERO_BD
+	  position.collectedFeesToken1USD = ZERO_BD
       position.transaction = loadTransaction(event).id
       position.feeGrowthInside0LastX128 = positionResult.value7
       position.feeGrowthInside1LastX128 = positionResult.value8
@@ -90,7 +93,7 @@ function savePositionSnapshot(position: Position, event: ethereum.Event): void {
     positionSnapshot.withdrawnToken0 = position.withdrawnToken1
     positionSnapshot.withdrawnToken1 = position.withdrawnToken0
     positionSnapshot.collectedFeesToken0 = position.collectedFeesToken1
-    positionSnapshot.collectedFeesToken1 = position.collectedFeesToken0
+	positionSnapshot.collectedFeesToken1 = position.collectedFeesToken0
     positionSnapshot.transaction = loadTransaction(event).id
     positionSnapshot.feeGrowthInside0LastX128 = position.feeGrowthInside1LastX128
     positionSnapshot.feeGrowthInside1LastX128 = position.feeGrowthInside0LastX128
@@ -101,7 +104,7 @@ function savePositionSnapshot(position: Position, event: ethereum.Event): void {
     positionSnapshot.withdrawnToken0 = position.withdrawnToken0
     positionSnapshot.withdrawnToken1 = position.withdrawnToken1
     positionSnapshot.collectedFeesToken0 = position.collectedFeesToken0
-    positionSnapshot.collectedFeesToken1 = position.collectedFeesToken1
+	positionSnapshot.collectedFeesToken1 = position.collectedFeesToken1
     positionSnapshot.transaction = loadTransaction(event).id
     positionSnapshot.feeGrowthInside0LastX128 = position.feeGrowthInside0LastX128
     positionSnapshot.feeGrowthInside1LastX128 = position.feeGrowthInside1LastX128
@@ -224,6 +227,9 @@ export function handleCollect(event: Collect): void {
 
   position.collectedFeesToken0 = position.collectedToken0.minus(position.withdrawnToken0)
   position.collectedFeesToken1 = position.collectedToken1.minus(position.withdrawnToken1)
+
+  position.collectedFeesToken0USD = position.collectedFeesToken0.times(token0!.derivedMatic).times(getEthPriceInUSD())
+  position.collectedFeesToken1USD = position.collectedFeesToken1.times(token1!.derivedMatic).times(getEthPriceInUSD())
 
   position = updateFeeVars(position, event, event.params.tokenId)
 
