@@ -46,8 +46,12 @@ function getPosition(event: ethereum.Event, tokenId: BigInt): Position | null {
       position.liquidity = ZERO_BI
       position.depositedToken0 = ZERO_BD
       position.depositedToken1 = ZERO_BD
+      position.depositedToken0USD = ZERO_BD
+      position.depositedToken1USD = ZERO_BD
       position.withdrawnToken0 = ZERO_BD
       position.withdrawnToken1 = ZERO_BD
+      position.withdrawnToken0USD = ZERO_BD
+      position.withdrawnToken1USD = ZERO_BD
       position.collectedToken0 = ZERO_BD
       position.collectedToken1 = ZERO_BD
       position.collectedFeesToken0 = ZERO_BD
@@ -143,11 +147,12 @@ export function handleIncreaseLiquidity(event: IncreaseLiquidity): void {
   position.liquidity = position.liquidity.plus(event.params.liquidity)
   position.depositedToken0 = position.depositedToken0.plus(amount0)
   position.depositedToken1 = position.depositedToken1.plus(amount1)
-  
+
+  position.depositedToken0USD = position.depositedToken0USD.plus(amount0.times(token0!.derivedMatic).times(getEthPriceInUSD()))
+  position.depositedToken1USD = position.depositedToken1USD.plus(amount1.times(token1!.derivedMatic).times(getEthPriceInUSD()))
 
   // recalculatePosition(position)
-  
-  
+
   position.save()
 
   savePositionSnapshot(position, event)
@@ -184,6 +189,9 @@ export function handleDecreaseLiquidity(event: DecreaseLiquidity): void {
   position.liquidity = position.liquidity.minus(event.params.liquidity)
   position.withdrawnToken0 = position.withdrawnToken0.plus(amount0)
   position.withdrawnToken1 = position.withdrawnToken1.plus(amount1)
+
+  position.withdrawnToken0USD = position.withdrawnToken0USD.plus(amount0.times(token0!.derivedMatic).times(getEthPriceInUSD()))
+  position.withdrawnToken1USD = position.withdrawnToken1USD.plus(amount1.times(token1!.derivedMatic).times(getEthPriceInUSD()))
 
   position = updateFeeVars(position, event, event.params.tokenId)
   // recalculatePosition(position)
@@ -228,8 +236,8 @@ export function handleCollect(event: Collect): void {
   position.collectedFeesToken0 = position.collectedToken0.minus(position.withdrawnToken0)
   position.collectedFeesToken1 = position.collectedToken1.minus(position.withdrawnToken1)
 
-  position.collectedFeesToken0USD = position.collectedFeesToken0.times(token0!.derivedMatic).times(getEthPriceInUSD())
-  position.collectedFeesToken1USD = position.collectedFeesToken1.times(token1!.derivedMatic).times(getEthPriceInUSD())
+  position.collectedFeesToken0USD = position.collectedFeesToken0USD.plus(position.collectedToken0.times(token0!.derivedMatic).times(getEthPriceInUSD()))
+  position.collectedFeesToken1USD = position.collectedFeesToken1USD.plus(position.collectedToken1.times(token1!.derivedMatic).times(getEthPriceInUSD()))
 
   position = updateFeeVars(position, event, event.params.tokenId)
 

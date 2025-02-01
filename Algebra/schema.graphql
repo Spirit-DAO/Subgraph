@@ -226,12 +226,20 @@ type Position @entity {
   liquidity: BigInt!
   # amount of token 0 ever deposited to position
   depositedToken0: BigDecimal!
+  # amount of token 0 ever deposited to position in USD
+  depositedToken0USD: BigDecimal!
   # amount of token 1 ever deposited to position
   depositedToken1: BigDecimal!
+  # amount of token 1 ever deposited to position in USD
+  depositedToken1USD: BigDecimal!
   # amount of token 0 ever withdrawn from position (without fees)
   withdrawnToken0: BigDecimal!
+  # amount of token 0 ever withdrawn from position (without fees) in USD
+  withdrawnToken0USD: BigDecimal!
   # amount of token 1 ever withdrawn from position (without fees)
   withdrawnToken1: BigDecimal!
+  # amount of token 1 ever withdrawn from position (without fees) in USD
+  withdrawnToken1USD: BigDecimal!
   # all time collected token0 (withdrawnToken0 + collectedFeesToken0)
   collectedToken0: BigDecimal!
   # all time collected token1 (withdrawnToken1 + collectedFeesToken1)
