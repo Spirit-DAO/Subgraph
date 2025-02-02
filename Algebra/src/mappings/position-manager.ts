@@ -6,7 +6,7 @@ import {
   NonfungiblePositionManager,
   Transfer
 } from '../types/NonfungiblePositionManager/NonfungiblePositionManager'
-import { Position, PositionSnapshot, Token} from '../types/schema'
+import { Pool, Position, PositionSnapshot, Token} from '../types/schema'
 import { ADDRESS_ZERO, factoryContract, ZERO_BD, ZERO_BI, pools_list} from '../utils/constants'
 import { Address, BigInt, ethereum } from '@graphprotocol/graph-ts'
 import { convertTokenToDecimal, loadTransaction } from '../utils'
@@ -81,8 +81,97 @@ function updateFeeVars(position: Position, event: ethereum.Event, tokenId: BigIn
   return position
 }
 
-function savePositionSnapshot(position: Position, event: ethereum.Event): void {
+function getSqrtRatioAtTick(tick: BigInt): BigInt {
+  const absTick = tick.lt(BigInt.zero()) ? tick.neg() : tick
+  let ratio = (absTick.bitAnd(BigInt.fromI32(1))).equals(BigInt.zero())
+    ? BigInt.fromString("79228162514264337593543950335")
+    : BigInt.fromString("79228162514264337593543950336")
+
+  if (!absTick.bitAnd(BigInt.fromI32(0x2)).equals(BigInt.zero())) 
+    ratio = ratio.times(BigInt.fromString("79236085330515764027303304731")).rightShift(96)
+  if (!absTick.bitAnd(BigInt.fromI32(0x4)).equals(BigInt.zero())) 
+    ratio = ratio.times(BigInt.fromString("79244008939048815603706035061")).rightShift(96)
+  if (!absTick.bitAnd(BigInt.fromI32(0x8)).equals(BigInt.zero())) 
+    ratio = ratio.times(BigInt.fromString("79251933331272066969758029582")).rightShift(96)
+  if (!absTick.bitAnd(BigInt.fromI32(0x10)).equals(BigInt.zero())) 
+    ratio = ratio.times(BigInt.fromString("79259858508743586581452568909")).rightShift(96)
+  if (!absTick.bitAnd(BigInt.fromI32(0x20)).equals(BigInt.zero())) 
+    ratio = ratio.times(BigInt.fromString("79267784471576792882072434238")).rightShift(96)
+  if (!absTick.bitAnd(BigInt.fromI32(0x40)).equals(BigInt.zero())) 
+    ratio = ratio.times(BigInt.fromString("79275711220608578541295342111")).rightShift(96)
+  if (!absTick.bitAnd(BigInt.fromI32(0x80)).equals(BigInt.zero())) 
+    ratio = ratio.times(BigInt.fromString("79283638756711037091108898807")).rightShift(96)
+
+  if (tick.gt(BigInt.zero())) {
+    ratio = BigInt.fromString("2").pow(192).div(ratio)
+  }
+
+  return ratio
+}
+
+// Define classes with constructors
+class TickBoundaries {
+  sqrtPriceLowerX96: BigInt
+  sqrtPriceUpperX96: BigInt
+
+  constructor() {
+    this.sqrtPriceLowerX96 = BigInt.zero()
+    this.sqrtPriceUpperX96 = BigInt.zero()
+  }
+}
+
+class LiquidityAmounts {
+  amount0: BigInt
+  amount1: BigInt
+
+  constructor() {
+    this.amount0 = BigInt.zero()
+    this.amount1 = BigInt.zero()
+  }
+}
+
+function calculateTickBoundaries(tickLower: BigInt, tickUpper: BigInt): TickBoundaries {
+  const sqrtPriceLowerX96 = getSqrtRatioAtTick(tickLower)
+  const sqrtPriceUpperX96 = getSqrtRatioAtTick(tickUpper)
   
+  let boundaries = new TickBoundaries()
+  boundaries.sqrtPriceLowerX96 = sqrtPriceLowerX96
+  boundaries.sqrtPriceUpperX96 = sqrtPriceUpperX96
+  return boundaries
+}
+
+function calculateLiquidityAmounts(
+  liquidity: BigInt, 
+  sqrtPriceX96: BigInt, 
+  tickLower: BigInt, 
+  tickUpper: BigInt
+): LiquidityAmounts {
+    let amounts = new LiquidityAmounts()
+    // No need to initialize to zero since constructor does that
+    
+    const boundaries = calculateTickBoundaries(tickLower, tickUpper)
+    const sqrtPriceLowerX96 = boundaries.sqrtPriceLowerX96
+    const sqrtPriceUpperX96 = boundaries.sqrtPriceUpperX96
+    const TWO_96 = BigInt.fromI32(2).pow(96)
+
+    if (sqrtPriceX96.le(sqrtPriceLowerX96)) {
+        // Current price is below range
+        amounts.amount0 = liquidity.times(sqrtPriceUpperX96.minus(sqrtPriceLowerX96)).div(TWO_96)
+        // amounts.amount1 stays zero
+    } else if (sqrtPriceX96.ge(sqrtPriceUpperX96)) {
+        // Current price is above range
+        // amounts.amount0 stays zero
+        amounts.amount1 = liquidity.times(sqrtPriceUpperX96.minus(sqrtPriceLowerX96)).div(TWO_96)
+    } else {
+        // Current price is within range
+        amounts.amount0 = liquidity.times(sqrtPriceUpperX96.minus(sqrtPriceX96)).div(TWO_96)
+        amounts.amount1 = liquidity.times(sqrtPriceX96.minus(sqrtPriceLowerX96)).div(TWO_96)
+    }
+
+    return amounts
+}
+
+function savePositionSnapshot(position: Position, event: ethereum.Event): void {
   let positionSnapshot = new PositionSnapshot(position.id.concat('#').concat(event.block.number.toString()))
   positionSnapshot.owner = position.owner
   positionSnapshot.pool = position.pool
@@ -90,6 +179,39 @@ function savePositionSnapshot(position: Position, event: ethereum.Event): void {
   positionSnapshot.blockNumber = event.block.number
   positionSnapshot.timestamp = event.block.timestamp
   positionSnapshot.liquidity = position.liquidity
+
+	let pool = Pool.load(position.pool)!
+	
+	const tickLowerLst = position.tickLower.split('#')
+	const tickLower = BigInt.fromString(tickLowerLst[tickLowerLst.length - 1])
+	const tickUpperLst = position.tickUpper.split('#')
+	const tickUpper = BigInt.fromString(tickUpperLst[tickUpperLst.length - 1])
+	
+  let amounts = calculateLiquidityAmounts(
+    position.liquidity, 
+    pool.sqrtPrice, 
+    tickLower, 
+    tickUpper
+  )
+  let amount0 = amounts.amount0
+  let amount1 = amounts.amount1
+
+  let token0 = Token.load(pool.token0)!
+  let token1 = Token.load(pool.token1)!
+
+  let ethPrice = getEthPriceInUSD()
+
+  positionSnapshot.liquidityToken0 = convertTokenToDecimal(amount0, token0.decimals)
+  positionSnapshot.liquidityToken1 = convertTokenToDecimal(amount1, token1.decimals)
+	
+  let amount0Matic = positionSnapshot.liquidityToken0.times(token0.derivedMatic)
+  let amount1Matic = positionSnapshot.liquidityToken1.times(token1.derivedMatic)
+
+  let amount0USD = amount0Matic.times(ethPrice)
+  let amount1USD = amount1Matic.times(ethPrice)
+
+  positionSnapshot.liquidityUsdToken0 = amount0USD
+  positionSnapshot.liquidityUsdToken1 = amount1USD
 
   if(pools_list.includes(position.pool)){
     positionSnapshot.depositedToken0 = position.depositedToken1

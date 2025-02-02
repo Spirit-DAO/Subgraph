@@ -129,7 +129,9 @@ type Pool @entity {
   totalValueLockedToken0: BigDecimal!
   # total token 1 across all ticks
   totalValueLockedToken1: BigDecimal!
+  # fees in token0
   feesToken0: BigDecimal!
+  # fees in token1
   feesToken1: BigDecimal!
   # tvl derived Matic
   totalValueLockedMatic: BigDecimal!
@@ -277,6 +279,14 @@ type PositionSnapshot @entity {
   timestamp: BigInt!
   # total position liquidity
   liquidity: BigInt!
+  # total position liquidity in token0
+  liquidityToken0: BigDecimal!
+  # total position liquidity in token1
+  liquidityToken1: BigDecimal!
+  # total position liquidity in USD
+  liquidityUsdToken0: BigDecimal!
+  # total position liquidity in USD
+  liquidityUsdToken1: BigDecimal!
   # amount of token 0 ever deposited to position
   depositedToken0: BigDecimal!
   # amount of token 1 ever deposited to position
@@ -499,6 +509,14 @@ type PoolDayData @entity {
   pool: Pool!
   # in range liquidity at end of period
   liquidity: BigInt!
+  # liquidity in token0
+  liquidityToken0: BigDecimal!
+  # liquidity usd in token0 
+  liquidityUsdToken0: BigDecimal!
+  # liquidity in token1
+  liquidityToken1: BigDecimal!
+  # liquidity usd in token1 
+  liquidityUsdToken1: BigDecimal!
   # current price tracker at end of period
   sqrtPrice: BigInt!
   #
@@ -515,9 +533,17 @@ type PoolDayData @entity {
   feeGrowthGlobal1X128: BigInt!
   # tvl derived in USD at end of period
   tvlUSD: BigDecimal!
-  feesToken0: BigDecimal!
-  feesToken1: BigDecimal!
+  # tvl in token0
+  tvlToken0: BigDecimal!
+  # fee percent
+  fee: BigInt!
+  # tvl in token1
+  tvlToken1: BigDecimal!
   # volume in token0
+  # fee token0
+  feesToken0: BigDecimal!
+  # fee token1
+  feesToken1: BigDecimal!
   volumeToken0: BigDecimal!
   # volume in token1
   volumeToken1: BigDecimal!
@@ -564,6 +590,14 @@ type PoolHourData @entity {
   pool: Pool!
   # in range liquidity at end of period
   liquidity: BigInt!
+  # liquidity in token0
+  liquidityToken0: BigDecimal!
+  # liquidity usd in token0 
+  liquidityUsdToken0: BigDecimal!
+  # liquidity in token1
+  liquidityToken1: BigDecimal!
+  # liquidity usd in token1 
+  liquidityUsdToken1: BigDecimal!
   # current price tracker at end of period
   sqrtPrice: BigInt!
   # price of token0 - derived from sqrtPrice
@@ -578,12 +612,23 @@ type PoolHourData @entity {
   feeGrowthGlobal1X128: BigInt!
   # tvl derived in USD at end of period
   tvlUSD: BigDecimal!
+  # tvl in token0
+  tvlToken0: BigDecimal!
+  # fee percent
+  fee: BigInt!
+  # fee token0
+  feesToken0: BigDecimal!
+  # fee token1
+  feesToken1: BigDecimal!
+  # tvl in token1
+  tvlToken1: BigDecimal!
   # volume in token0
   volumeToken0: BigDecimal!
   # volume in token1
   volumeToken1: BigDecimal!
   # volume in USD
   volumeUSD: BigDecimal!
+
   # fees in USD
   feesUSD: BigDecimal!
   # community fees in USD
