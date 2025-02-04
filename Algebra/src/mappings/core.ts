@@ -110,6 +110,9 @@ export function handleMint(event: MintEvent): void {
     .plus(pool.totalValueLockedToken1.times(token1.derivedMatic))
   pool.totalValueLockedUSD = pool.totalValueLockedMatic.times(bundle.maticPriceUSD)
 
+  pool.totalValueLockedToken0USD = pool.totalValueLockedToken0.times(token0.derivedMatic).times(bundle.maticPriceUSD)
+  pool.totalValueLockedToken1USD = pool.totalValueLockedToken1.times(token1.derivedMatic).times(bundle.maticPriceUSD)
+
   // reset aggregates with new amounts
   factory.totalValueLockedMatic = factory.totalValueLockedMatic.plus(pool.totalValueLockedMatic)
   factory.totalValueLockedUSD = factory.totalValueLockedMatic.times(bundle.maticPriceUSD)
@@ -250,8 +253,12 @@ export function handleBurn(event: BurnEvent): void {
     .times(token0.derivedMatic)
     .plus(pool.totalValueLockedToken1.times(token1.derivedMatic))
   pool.totalValueLockedUSD = pool.totalValueLockedMatic.times(bundle.maticPriceUSD)
+	
+  pool.totalValueLockedToken0USD = pool.totalValueLockedToken0.times(token0.derivedMatic).times(bundle.maticPriceUSD)
+  pool.totalValueLockedToken1USD = pool.totalValueLockedToken1.times(token1.derivedMatic).times(bundle.maticPriceUSD)
 
   // reset aggregates with new amounts
+
   factory.totalValueLockedMatic = factory.totalValueLockedMatic.plus(pool.totalValueLockedMatic)
   factory.totalValueLockedUSD = factory.totalValueLockedMatic.times(bundle.maticPriceUSD)
 
@@ -416,6 +423,7 @@ export function handleSwap(event: SwapEvent): void {
 
   // update token0 data
   token0.volume = token0.volume.plus(amount0Abs)
+
   token0.totalValueLocked = token0.totalValueLocked.plus(amount0withoutFee)
   token0.volumeUSD = token0.volumeUSD.plus(amountTotalUSDTracked)
   token0.untrackedVolumeUSD = token0.untrackedVolumeUSD.plus(amountTotalUSDUntracked)
@@ -460,6 +468,9 @@ export function handleSwap(event: SwapEvent): void {
     .times(token0.derivedMatic)
     .plus(pool.totalValueLockedToken1.times(token1.derivedMatic))
   pool.totalValueLockedUSD = pool.totalValueLockedMatic.times(bundle.maticPriceUSD)
+	
+  pool.totalValueLockedToken0USD = pool.totalValueLockedToken0.times(token0.derivedMatic).times(bundle.maticPriceUSD)
+  pool.totalValueLockedToken1USD = pool.totalValueLockedToken1.times(token1.derivedMatic).times(bundle.maticPriceUSD)
 
   factory.totalValueLockedMatic = factory.totalValueLockedMatic.plus(pool.totalValueLockedMatic)
   factory.totalValueLockedUSD = factory.totalValueLockedMatic.times(bundle.maticPriceUSD)

@@ -6,9 +6,9 @@ import {
   NonfungiblePositionManager,
   Transfer
 } from '../types/NonfungiblePositionManager/NonfungiblePositionManager'
-import { Pool, Position, PositionSnapshot, Token} from '../types/schema'
-import { ADDRESS_ZERO, factoryContract, ZERO_BD, ZERO_BI, pools_list} from '../utils/constants'
-import { Address, BigInt, ethereum } from '@graphprotocol/graph-ts'
+import { Bundle, Pool, Position, PositionSnapshot, Token} from '../types/schema'
+import { ADDRESS_ZERO, factoryContract, ZERO_BD, ZERO_BI, pools_list, ONE_BI} from '../utils/constants'
+import { Address, BigInt, ethereum, log } from '@graphprotocol/graph-ts'
 import { convertTokenToDecimal, loadTransaction } from '../utils'
 import { getEthPriceInUSD } from '../utils/pricing'
 
@@ -82,31 +82,65 @@ function updateFeeVars(position: Position, event: ethereum.Event, tokenId: BigIn
 }
 
 function getSqrtRatioAtTick(tick: BigInt): BigInt {
-  const absTick = tick.lt(BigInt.zero()) ? tick.neg() : tick
-  let ratio = (absTick.bitAnd(BigInt.fromI32(1))).equals(BigInt.zero())
-    ? BigInt.fromString("79228162514264337593543950335")
-    : BigInt.fromString("79228162514264337593543950336")
-
-  if (!absTick.bitAnd(BigInt.fromI32(0x2)).equals(BigInt.zero())) 
-    ratio = ratio.times(BigInt.fromString("79236085330515764027303304731")).rightShift(96)
-  if (!absTick.bitAnd(BigInt.fromI32(0x4)).equals(BigInt.zero())) 
-    ratio = ratio.times(BigInt.fromString("79244008939048815603706035061")).rightShift(96)
-  if (!absTick.bitAnd(BigInt.fromI32(0x8)).equals(BigInt.zero())) 
-    ratio = ratio.times(BigInt.fromString("79251933331272066969758029582")).rightShift(96)
-  if (!absTick.bitAnd(BigInt.fromI32(0x10)).equals(BigInt.zero())) 
-    ratio = ratio.times(BigInt.fromString("79259858508743586581452568909")).rightShift(96)
-  if (!absTick.bitAnd(BigInt.fromI32(0x20)).equals(BigInt.zero())) 
-    ratio = ratio.times(BigInt.fromString("79267784471576792882072434238")).rightShift(96)
-  if (!absTick.bitAnd(BigInt.fromI32(0x40)).equals(BigInt.zero())) 
-    ratio = ratio.times(BigInt.fromString("79275711220608578541295342111")).rightShift(96)
-  if (!absTick.bitAnd(BigInt.fromI32(0x80)).equals(BigInt.zero())) 
-    ratio = ratio.times(BigInt.fromString("79283638756711037091108898807")).rightShift(96)
-
-  if (tick.gt(BigInt.zero())) {
-    ratio = BigInt.fromString("2").pow(192).div(ratio)
+  // Check tick bounds
+  const minTick = BigInt.fromI32(-887272)
+  const maxTick = BigInt.fromI32(887272)
+  
+  if (tick.lt(minTick) || tick.gt(maxTick)) {
+    return ZERO_BI
   }
 
-  return ratio
+  const absTick = tick.lt(BigInt.zero()) ? tick.neg() : tick
+  let ratio = (absTick.bitAnd(BigInt.fromI32(0x1))).notEqual(ZERO_BI)
+    ? BigInt.fromString('0xfffcb933bd6fad37aa2d162d1a594001')
+    : BigInt.fromString('0x100000000000000000000000000000000')
+
+  if (!absTick.bitAnd(BigInt.fromI32(0x2)).equals(ZERO_BI))
+    ratio = ratio.times(BigInt.fromString('0xfff97272373d413259a46990580e213a')).rightShift(128)
+  if (!absTick.bitAnd(BigInt.fromI32(0x4)).equals(ZERO_BI))
+    ratio = ratio.times(BigInt.fromString('0xfff2e50f5f656932ef12357cf3c7fdcc')).rightShift(128)
+  if (!absTick.bitAnd(BigInt.fromI32(0x8)).equals(ZERO_BI))
+    ratio = ratio.times(BigInt.fromString('0xffe5caca7e10e4e61c3624eaa0941cd0')).rightShift(128)
+  if (!absTick.bitAnd(BigInt.fromI32(0x10)).equals(ZERO_BI))
+    ratio = ratio.times(BigInt.fromString('0xffcb9843d60f6159c9db58835c926644')).rightShift(128)
+  if (!absTick.bitAnd(BigInt.fromI32(0x20)).equals(ZERO_BI))
+    ratio = ratio.times(BigInt.fromString('0xff973b41fa98c081472e6896dfb254c0')).rightShift(128)
+  if (!absTick.bitAnd(BigInt.fromI32(0x40)).equals(ZERO_BI))
+    ratio = ratio.times(BigInt.fromString('0xff2ea16466c96a3843ec78b326b52861')).rightShift(128)
+  if (!absTick.bitAnd(BigInt.fromI32(0x80)).equals(ZERO_BI))
+    ratio = ratio.times(BigInt.fromString('0xfe5dee046a99a2a811c461f1969c3053')).rightShift(128)
+  if (!absTick.bitAnd(BigInt.fromI32(0x100)).equals(ZERO_BI))
+    ratio = ratio.times(BigInt.fromString('0xfcbe86c7900a88aedcffc83b479aa3a4')).rightShift(128)
+  if (!absTick.bitAnd(BigInt.fromI32(0x200)).equals(ZERO_BI))
+    ratio = ratio.times(BigInt.fromString('0xf987a7253ac413176f2b074cf7815e54')).rightShift(128)
+  if (!absTick.bitAnd(BigInt.fromI32(0x400)).equals(ZERO_BI))
+    ratio = ratio.times(BigInt.fromString('0xf3392b0822b70005940c7a398e4b70f3')).rightShift(128)
+  if (!absTick.bitAnd(BigInt.fromI32(0x800)).equals(ZERO_BI))
+    ratio = ratio.times(BigInt.fromString('0xe7159475a2c29b7443b29c7fa6e889d9')).rightShift(128)
+  if (!absTick.bitAnd(BigInt.fromI32(0x1000)).equals(ZERO_BI))
+    ratio = ratio.times(BigInt.fromString('0xd097f3bdfd2022b8845ad8f792aa5825')).rightShift(128)
+  if (!absTick.bitAnd(BigInt.fromI32(0x2000)).equals(ZERO_BI))
+    ratio = ratio.times(BigInt.fromString('0xa9f746462d870fdf8a65dc1f90e061e5')).rightShift(128)
+  if (!absTick.bitAnd(BigInt.fromI32(0x4000)).equals(ZERO_BI))
+    ratio = ratio.times(BigInt.fromString('0x70d869a156d2a1b890bb3df62baf32f7')).rightShift(128)
+  if (!absTick.bitAnd(BigInt.fromI32(0x8000)).equals(ZERO_BI))
+    ratio = ratio.times(BigInt.fromString('0x31be135f97d08fd981231505542fcfa6')).rightShift(128)
+  if (!absTick.bitAnd(BigInt.fromI32(0x10000)).equals(ZERO_BI))
+    ratio = ratio.times(BigInt.fromString('0x9aa508b5b7a84e1c677de54f3e99bc9')).rightShift(128)
+  if (!absTick.bitAnd(BigInt.fromI32(0x20000)).equals(ZERO_BI))
+    ratio = ratio.times(BigInt.fromString('0x5d6af8dedb81196699c329225ee604')).rightShift(128)
+  if (!absTick.bitAnd(BigInt.fromI32(0x40000)).equals(ZERO_BI))
+    ratio = ratio.times(BigInt.fromString('0x2216e584f5fa1ea926041bedfe98')).rightShift(128)
+  if (!absTick.bitAnd(BigInt.fromI32(0x80000)).equals(ZERO_BI))
+    ratio = ratio.times(BigInt.fromString('0x48a170391f7dc42444e8fa2')).rightShift(128)
+
+  if (tick.gt(BigInt.zero())) {
+    ratio = BigInt.fromString('0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff').div(ratio)
+  }
+
+  // Convert to Q96
+  const Q32 = BigInt.fromI32(2).pow(32)
+  return ratio.mod(Q32).gt(ZERO_BI) ? ratio.div(Q32).plus(ONE_BI) : ratio.div(Q32)
 }
 
 // Define classes with constructors
@@ -140,35 +174,108 @@ function calculateTickBoundaries(tickLower: BigInt, tickUpper: BigInt): TickBoun
   return boundaries
 }
 
+function getAmount0Delta(sqrtRatioAX96: BigInt, sqrtRatioBX96: BigInt, liquidity: BigInt, roundUp: boolean): BigInt {
+  if (sqrtRatioAX96.gt(sqrtRatioBX96)) {
+    let temp = sqrtRatioAX96
+    sqrtRatioAX96 = sqrtRatioBX96
+    sqrtRatioBX96 = temp
+  }
+
+  const TWO_96 = BigInt.fromI32(2).pow(96)
+  const numerator1 = liquidity.times(TWO_96)
+  const numerator2 = sqrtRatioBX96.minus(sqrtRatioAX96)
+  const numerator = numerator1.times(numerator2)
+  const denominator = sqrtRatioBX96.times(sqrtRatioAX96)
+
+  let amount = numerator.div(denominator)
+  if (roundUp && numerator.mod(denominator).gt(ZERO_BI)) {
+    amount = amount.plus(ONE_BI)
+  }
+
+  return amount
+}
+
+function getAmount1Delta(sqrtRatioAX96: BigInt, sqrtRatioBX96: BigInt, liquidity: BigInt, roundUp: boolean): BigInt {
+  if (sqrtRatioAX96.gt(sqrtRatioBX96)) {
+    let temp = sqrtRatioAX96
+    sqrtRatioAX96 = sqrtRatioBX96
+    sqrtRatioBX96 = temp
+  }
+
+  const TWO_96 = BigInt.fromI32(2).pow(96)
+  const numerator = liquidity.times(sqrtRatioBX96.minus(sqrtRatioAX96))
+  let amount = numerator.div(TWO_96)
+  
+  if (roundUp && numerator.mod(TWO_96).gt(ZERO_BI)) {
+    amount = amount.plus(ONE_BI)
+  }
+
+  return amount
+}
+
 function calculateLiquidityAmounts(
-  liquidity: BigInt, 
-  sqrtPriceX96: BigInt, 
-  tickLower: BigInt, 
+  liquidity: BigInt,
+  sqrtPriceX96: BigInt,
+  tickLower: BigInt,
   tickUpper: BigInt
 ): LiquidityAmounts {
-    let amounts = new LiquidityAmounts()
-    // No need to initialize to zero since constructor does that
-    
-    const boundaries = calculateTickBoundaries(tickLower, tickUpper)
-    const sqrtPriceLowerX96 = boundaries.sqrtPriceLowerX96
-    const sqrtPriceUpperX96 = boundaries.sqrtPriceUpperX96
-    const TWO_96 = BigInt.fromI32(2).pow(96)
+  let amounts = new LiquidityAmounts()
+  
+  const sqrtRatioLowerX96 = getSqrtRatioAtTick(tickLower)
+  const sqrtRatioUpperX96 = getSqrtRatioAtTick(tickUpper)
 
-    if (sqrtPriceX96.le(sqrtPriceLowerX96)) {
-        // Current price is below range
-        amounts.amount0 = liquidity.times(sqrtPriceUpperX96.minus(sqrtPriceLowerX96)).div(TWO_96)
-        // amounts.amount1 stays zero
-    } else if (sqrtPriceX96.ge(sqrtPriceUpperX96)) {
-        // Current price is above range
-        // amounts.amount0 stays zero
-        amounts.amount1 = liquidity.times(sqrtPriceUpperX96.minus(sqrtPriceLowerX96)).div(TWO_96)
-    } else {
-        // Current price is within range
-        amounts.amount0 = liquidity.times(sqrtPriceUpperX96.minus(sqrtPriceX96)).div(TWO_96)
-        amounts.amount1 = liquidity.times(sqrtPriceX96.minus(sqrtPriceLowerX96)).div(TWO_96)
-    }
+  // Debug logging
+  log.debug(
+    'Calculating liquidity amounts: liquidity={}, sqrtPrice={}, tickLower={}, tickUpper={}, sqrtRatioLower={}, sqrtRatioUpper={}',
+    [
+      liquidity.toString(),
+      sqrtPriceX96.toString(),
+      tickLower.toString(),
+      tickUpper.toString(),
+      sqrtRatioLowerX96.toString(),
+      sqrtRatioUpperX96.toString()
+    ]
+  )
 
+  if (sqrtRatioLowerX96.equals(ZERO_BI) || sqrtRatioUpperX96.equals(ZERO_BI)) {
     return amounts
+  }
+
+  if (sqrtPriceX96.lt(sqrtRatioLowerX96)) {
+    // Current price is below the position
+    amounts.amount0 = getAmount0Delta(
+      sqrtRatioLowerX96,
+      sqrtRatioUpperX96,
+      liquidity,
+      true
+    )
+    amounts.amount1 = ZERO_BI
+  } else if (sqrtPriceX96.lt(sqrtRatioUpperX96)) {
+    // Current price is within the position
+    amounts.amount0 = getAmount0Delta(
+      sqrtPriceX96,
+      sqrtRatioUpperX96,
+      liquidity,
+      true
+    )
+    amounts.amount1 = getAmount1Delta(
+      sqrtRatioLowerX96,
+      sqrtPriceX96,
+      liquidity,
+      true
+    )
+  } else {
+    // Current price is above the position
+    amounts.amount0 = ZERO_BI
+    amounts.amount1 = getAmount1Delta(
+      sqrtRatioLowerX96,
+      sqrtRatioUpperX96,
+      liquidity,
+      true
+    )
+  }
+
+  return amounts
 }
 
 function savePositionSnapshot(position: Position, event: ethereum.Event): void {
@@ -180,12 +287,13 @@ function savePositionSnapshot(position: Position, event: ethereum.Event): void {
   positionSnapshot.timestamp = event.block.timestamp
   positionSnapshot.liquidity = position.liquidity
 
-	let pool = Pool.load(position.pool)!
+  let pool = Pool.load(position.pool)!
+  let bundle = Bundle.load('1')!
 	
-	const tickLowerLst = position.tickLower.split('#')
-	const tickLower = BigInt.fromString(tickLowerLst[tickLowerLst.length - 1])
-	const tickUpperLst = position.tickUpper.split('#')
-	const tickUpper = BigInt.fromString(tickUpperLst[tickUpperLst.length - 1])
+  const tickLowerLst = position.tickLower.split('#')
+  const tickLower = BigInt.fromString(tickLowerLst[tickLowerLst.length - 1])
+  const tickUpperLst = position.tickUpper.split('#')
+  const tickUpper = BigInt.fromString(tickUpperLst[tickUpperLst.length - 1])
 	
   let amounts = calculateLiquidityAmounts(
     position.liquidity, 
@@ -199,11 +307,14 @@ function savePositionSnapshot(position: Position, event: ethereum.Event): void {
   let token0 = Token.load(pool.token0)!
   let token1 = Token.load(pool.token1)!
 
-  let ethPrice = getEthPriceInUSD()
+  let ethPrice = bundle.maticPriceUSD
 
   positionSnapshot.liquidityToken0 = convertTokenToDecimal(amount0, token0.decimals)
   positionSnapshot.liquidityToken1 = convertTokenToDecimal(amount1, token1.decimals)
-	
+
+  positionSnapshot.tickLower = getSqrtRatioAtTick(tickLower)
+  positionSnapshot.tickUpper = getSqrtRatioAtTick(tickUpper)
+
   let amount0Matic = positionSnapshot.liquidityToken0.times(token0.derivedMatic)
   let amount1Matic = positionSnapshot.liquidityToken1.times(token1.derivedMatic)
 
@@ -240,7 +351,7 @@ function savePositionSnapshot(position: Position, event: ethereum.Event): void {
 }
 
 export function handleIncreaseLiquidity(event: IncreaseLiquidity): void {
-  
+  let bundle = Bundle.load('1')!
   let position = getPosition(event, event.params.tokenId)
 
   // position was not able to be fetched
@@ -250,8 +361,6 @@ export function handleIncreaseLiquidity(event: IncreaseLiquidity): void {
 
   let token0 = Token.load(position.token0)
   let token1 = Token.load(position.token1)
-
-
 
   let amount1 = ZERO_BD
   let amount0 = ZERO_BD
@@ -270,8 +379,9 @@ export function handleIncreaseLiquidity(event: IncreaseLiquidity): void {
   position.depositedToken0 = position.depositedToken0.plus(amount0)
   position.depositedToken1 = position.depositedToken1.plus(amount1)
 
-  position.depositedToken0USD = position.depositedToken0USD.plus(amount0.times(token0!.derivedMatic).times(getEthPriceInUSD()))
-  position.depositedToken1USD = position.depositedToken1USD.plus(amount1.times(token1!.derivedMatic).times(getEthPriceInUSD()))
+  position.depositedToken0USD = position.depositedToken0USD.plus(amount0.times(token0!.derivedMatic).times(bundle.maticPriceUSD))
+  position.depositedToken1USD = position.depositedToken1USD.plus(amount1.times(token1!.derivedMatic).times(bundle.maticPriceUSD))
+
 
   // recalculatePosition(position)
 
@@ -283,6 +393,7 @@ export function handleIncreaseLiquidity(event: IncreaseLiquidity): void {
 
 export function handleDecreaseLiquidity(event: DecreaseLiquidity): void {
   let position = getPosition(event, event.params.tokenId)
+  let bundle = Bundle.load('1')!
 
   // position was not able to be fetched
   if (position == null) {
@@ -312,8 +423,9 @@ export function handleDecreaseLiquidity(event: DecreaseLiquidity): void {
   position.withdrawnToken0 = position.withdrawnToken0.plus(amount0)
   position.withdrawnToken1 = position.withdrawnToken1.plus(amount1)
 
-  position.withdrawnToken0USD = position.withdrawnToken0USD.plus(amount0.times(token0!.derivedMatic).times(getEthPriceInUSD()))
-  position.withdrawnToken1USD = position.withdrawnToken1USD.plus(amount1.times(token1!.derivedMatic).times(getEthPriceInUSD()))
+  position.withdrawnToken0USD = position.withdrawnToken0USD.plus(amount0.times(token0!.derivedMatic).times(bundle.maticPriceUSD))
+  position.withdrawnToken1USD = position.withdrawnToken1USD.plus(amount1.times(token1!.derivedMatic).times(bundle.maticPriceUSD))
+
 
   position = updateFeeVars(position, event, event.params.tokenId)
   // recalculatePosition(position)
@@ -326,6 +438,7 @@ export function handleDecreaseLiquidity(event: DecreaseLiquidity): void {
 
 export function handleCollect(event: Collect): void {
   let position = getPosition(event, event.params.tokenId)
+  let bundle = Bundle.load('1')!
 
   // position was not able to be fetched
   if (position == null) {
@@ -358,8 +471,8 @@ export function handleCollect(event: Collect): void {
   position.collectedFeesToken0 = position.collectedToken0.minus(position.withdrawnToken0)
   position.collectedFeesToken1 = position.collectedToken1.minus(position.withdrawnToken1)
 
-  position.collectedFeesToken0USD = position.collectedFeesToken0USD.plus(position.collectedToken0.times(token0!.derivedMatic).times(getEthPriceInUSD()))
-  position.collectedFeesToken1USD = position.collectedFeesToken1USD.plus(position.collectedToken1.times(token1!.derivedMatic).times(getEthPriceInUSD()))
+  position.collectedFeesToken0USD = position.collectedFeesToken0USD.plus(position.collectedToken0.times(token0!.derivedMatic).times(bundle.maticPriceUSD))
+  position.collectedFeesToken1USD = position.collectedFeesToken1USD.plus(position.collectedToken1.times(token1!.derivedMatic).times(bundle.maticPriceUSD))
 
   position = updateFeeVars(position, event, event.params.tokenId)
 
@@ -383,7 +496,5 @@ export function handleTransfer(event: Transfer): void {
   position.save()
 
   savePositionSnapshot(position, event)
-  
-  
 }
 

@@ -16,42 +16,6 @@ import {
 } from './../types/schema'
 import { FACTORY_ADDRESS } from './constants'
 import { ethereum, BigInt } from '@graphprotocol/graph-ts'
-import { convertTokenToDecimal } from '.';
-import { getEthPriceInUSD } from './pricing';
-
-// Add the LiquidityAmounts class definition
-class LiquidityAmounts {
-  amount0: BigInt
-  amount1: BigInt
-
-  constructor() {
-    this.amount0 = BigInt.zero()
-    this.amount1 = BigInt.zero()
-  }
-}
-
-function calculateTotalLiquidityAmounts(liquidity: BigInt, sqrtPriceX96: BigInt): LiquidityAmounts {
-    let amounts = new LiquidityAmounts()
-    
-    // Define global min/max price bounds for the whole pool
-    const sqrtPriceLowerX96 = BigInt.zero()
-    const sqrtPriceUpperX96 = BigInt.fromString("6277101735386680763835789423207666416102355444464034512896")
-    const TWO_96 = BigInt.fromI32(2).pow(96)
-
-    if (sqrtPriceX96.le(sqrtPriceLowerX96)) {
-        amounts.amount0 = liquidity.times(sqrtPriceUpperX96.minus(sqrtPriceLowerX96)).div(TWO_96)
-        // amounts.amount1 stays zero
-    } else if (sqrtPriceX96.ge(sqrtPriceUpperX96)) {
-        // amounts.amount0 stays zero
-        amounts.amount1 = liquidity.times(sqrtPriceUpperX96.minus(sqrtPriceLowerX96)).div(TWO_96)
-    } else {
-        amounts.amount0 = liquidity.times(sqrtPriceUpperX96.minus(sqrtPriceX96)).div(TWO_96)
-        amounts.amount1 = liquidity.times(sqrtPriceX96.minus(sqrtPriceLowerX96)).div(TWO_96)
-    }
-
-    return amounts
-}
-
 /**
  * Tracks global aggregate data over daily windows
  * @param event
@@ -119,35 +83,15 @@ export function updatePoolDayData(event: ethereum.Event): PoolDayData {
     poolDayData.low = pool.token0Price
   }
 
-  let amounts = calculateTotalLiquidityAmounts(pool.liquidity, pool.sqrtPrice)
-  let amount0 = amounts.amount0
-  let amount1 = amounts.amount1
-
-  let token0 = Token.load(pool.token0)!
-  let token1 = Token.load(pool.token1)!
-
-  let ethPrice = getEthPriceInUSD()
-
-  poolDayData.liquidity = pool.liquidity
-  poolDayData.liquidityToken0 = convertTokenToDecimal(amount0, token0.decimals)
-  poolDayData.liquidityToken1 = convertTokenToDecimal(amount1, token1.decimals)
-
-  let amount0Matic = poolDayData.liquidityToken0.times(token0.derivedMatic)
-  let amount1Matic = poolDayData.liquidityToken1.times(token1.derivedMatic)
-
-  let amount0USD = amount0Matic.times(ethPrice)
-  let amount1USD = amount1Matic.times(ethPrice)
-
-  poolDayData.liquidityUsdToken0 = amount0USD
-  poolDayData.liquidityUsdToken1 = amount1USD
-
   poolDayData.sqrtPrice = pool.sqrtPrice
   poolDayData.token0Price = pool.token0Price
   poolDayData.token1Price = pool.token1Price
   poolDayData.tick = pool.tick
   poolDayData.tvlUSD = pool.totalValueLockedUSD
   poolDayData.tvlToken0 = pool.totalValueLockedToken0
+  poolDayData.tvlToken0USD = pool.totalValueLockedToken0USD
   poolDayData.tvlToken1 = pool.totalValueLockedToken1
+  poolDayData.tvlToken1USD = pool.totalValueLockedToken1USD
   poolDayData.fee = pool.fee
   poolDayData.txCount = poolDayData.txCount.plus(ONE_BI)
   poolDayData.save()
@@ -230,29 +174,7 @@ export function updatePoolHourData(event: ethereum.Event): PoolHourData {
   if (pool.token0Price.lt(poolHourData.low)) {
     poolHourData.low = pool.token0Price
   }
-	
-  let amounts = calculateTotalLiquidityAmounts(pool.liquidity, pool.sqrtPrice)
-  let amount0 = amounts.amount0
-  let amount1 = amounts.amount1
 
-  let token0 = Token.load(pool.token0)!
-  let token1 = Token.load(pool.token1)!
-	
-  let ethPrice = getEthPriceInUSD()
-	
-  poolHourData.liquidity = pool.liquidity
-  poolHourData.liquidityToken0 = convertTokenToDecimal(amount0, token0.decimals)
-  poolHourData.liquidityToken1 = convertTokenToDecimal(amount1, token1.decimals)
-
-  let amount0Matic = poolHourData.liquidityToken0.times(token0.derivedMatic)
-  let amount1Matic = poolHourData.liquidityToken1.times(token1.derivedMatic)
-  
-  let amount0USD = amount0Matic.times(ethPrice)
-  let amount1USD = amount1Matic.times(ethPrice)
-	
-  poolHourData.liquidityUsdToken0 = amount0USD
-  poolHourData.liquidityUsdToken1 = amount1USD
-	
   poolHourData.sqrtPrice = pool.sqrtPrice
   poolHourData.token0Price = pool.token0Price
   poolHourData.token1Price = pool.token1Price
