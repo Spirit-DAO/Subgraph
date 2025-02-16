@@ -1,0 +1,10 @@
+ type Transfer @entity {
+    id: ID!
+    from: String!
+    to: String!
+    tokenId: BigInt!
+	log_index: BigInt!
+	block_number: BigInt!
+	transaction_hash: String!
+	timestamp: BigInt!
+}

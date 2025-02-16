@@ -1,0 +1,98 @@
+specVersion: 1.0.0
+indexerHints:
+  prune: auto
+schema:
+  file: ./schema.graphql
+dataSources:
+  - kind: ethereum
+    name: SilverFees
+    network: sonic
+    source:
+      address: "0xfeE899CF3Ef6FCf338Da86453c334973e015c236"
+      abi: SilverFees
+      startBlock: 871694
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - EditedFees
+        - EditedTeamMultisig
+        - FeesManagementExecuted
+        - FeesTokenAdded
+        - FeesTokenRemoved
+        - FeesTokenSwapped
+        - FlareAuction
+        - FlareBuyback
+        - FlareExecution
+        - GelatoFeesCheck
+        - GelatoTaskCancelFailed
+        - GelatoTaskCanceled
+        - GelatoTaskCreated
+        - OwnershipTransferStarted
+        - OwnershipTransferred
+        - SnatchAuction
+        - SnatchExecution
+        - SnatchSteal
+        - SwapToWrappedToken
+        - SwapTypeChanged
+        - SyncFeesManagement
+        - SyncFeesStarted
+        - TokensBurned
+        - WithdrawnNative
+        - WithdrawnToken
+      abis:
+        - name: SilverFees
+          file: ./abis/SilverFees.json
+      eventHandlers:
+        - event: EditedFees(uint256,uint256,uint256)
+          handler: handleEditedFees
+        - event: EditedTeamMultisig(indexed address)
+          handler: handleEditedTeamMultisig
+        - event: FeesManagementExecuted(uint256,uint256,uint256)
+          handler: handleFeesManagementExecuted
+        - event: FeesTokenAdded(indexed address,bytes32)
+          handler: handleFeesTokenAdded
+        - event: FeesTokenRemoved(indexed address)
+          handler: handleFeesTokenRemoved
+        - event: FeesTokenSwapped(indexed address,uint256,uint256)
+          handler: handleFeesTokenSwapped
+        - event: FlareAuction(indexed address,uint256)
+          handler: handleFlareAuction
+        - event: FlareBuyback(indexed address,uint256)
+          handler: handleFlareBuyback
+        - event: FlareExecution(indexed address,uint256,uint256)
+          handler: handleFlareExecution
+        - event: GelatoFeesCheck(uint256,address)
+          handler: handleGelatoFeesCheck
+        - event: GelatoTaskCancelFailed(bytes32)
+          handler: handleGelatoTaskCancelFailed
+        - event: GelatoTaskCanceled(bytes32)
+          handler: handleGelatoTaskCanceled
+        - event: GelatoTaskCreated(bytes32)
+          handler: handleGelatoTaskCreated
+        - event: OwnershipTransferStarted(indexed address,indexed address)
+          handler: handleOwnershipTransferStarted
+        - event: OwnershipTransferred(indexed address,indexed address)
+          handler: handleOwnershipTransferred
+        - event: SnatchAuction(indexed address,indexed address,uint256)
+          handler: handleSnatchAuction
+        - event: SnatchExecution(indexed address,indexed address)
+          handler: handleSnatchExecution
+        - event: SnatchSteal(indexed address,indexed address,address,uint256)
+          handler: handleSnatchSteal
+        - event: SwapToWrappedToken(bool)
+          handler: handleSwapToWrappedToken
+        - event: SwapTypeChanged()
+          handler: handleSwapTypeChanged
+        - event: SyncFeesManagement(indexed uint256)
+          handler: handleSyncFeesManagement
+        - event: SyncFeesStarted()
+          handler: handleSyncFeesStarted
+        - event: TokensBurned(uint256)
+          handler: handleTokensBurned
+        - event: WithdrawnNative(indexed address,uint256)
+          handler: handleWithdrawnNative
+        - event: WithdrawnToken(indexed address,address,uint256)
+          handler: handleWithdrawnToken
+      file: ./src/silver-fees.ts

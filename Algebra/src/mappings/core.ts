@@ -408,6 +408,8 @@ export function handleSwap(event: SwapEvent): void {
   // pool volume
   pool.volumeToken0 = pool.volumeToken0.plus(amount0Abs)
   pool.volumeToken1 = pool.volumeToken1.plus(amount1Abs)
+  pool.volumeToken0USD = pool.volumeToken0USD.plus(amount0USD)
+  pool.volumeToken1USD = pool.volumeToken1USD.plus(amount1USD)
   pool.volumeUSD = pool.volumeUSD.plus(amountTotalUSDTracked)
   pool.untrackedVolumeUSD = pool.untrackedVolumeUSD.plus(amountTotalUSDUntracked)
   pool.feesUSD = pool.feesUSD.plus(feesUSD)
@@ -495,7 +497,8 @@ export function handleSwap(event: SwapEvent): void {
   swap.amountUSD = amountTotalUSDTracked
   swap.tick = BigInt.fromI32(event.params.tick as i32)
   swap.price = event.params.price
-
+  swap.logIndex = event.logIndex
+  swap.blockNumber = event.block.number
 
   // update fee growth
   let poolContract = PoolABI.bind(event.address)
@@ -532,6 +535,8 @@ export function handleSwap(event: SwapEvent): void {
   poolDayData.untrackedVolumeUSD = poolDayData.untrackedVolumeUSD.plus(amountTotalUSDUntracked)
   poolDayData.volumeToken0 = poolDayData.volumeToken0.plus(amount0Abs)
   poolDayData.volumeToken1 = poolDayData.volumeToken1.plus(amount1Abs)
+  poolDayData.volumeToken0USD = poolDayData.volumeToken0USD.plus(amount0USD)
+  poolDayData.volumeToken1USD = poolDayData.volumeToken1USD.plus(amount1USD)
   poolDayData.feesUSD = poolDayData.feesUSD.plus(feesUSD)
   poolDayData.feesCommunityUSD = poolDayData.feesCommunityUSD.plus(feesCommunityUSD)
   poolDayData.fees0 = poolDayData.fees0.plus(fees0)

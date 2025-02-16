@@ -107,6 +107,10 @@ type Pool @entity {
   volumeToken0: BigDecimal!
   # all time token1 swapped
   volumeToken1: BigDecimal!
+  # volume in token0 in USD
+  volumeToken0USD: BigDecimal!
+  # volume in token1 in USD
+  volumeToken1USD: BigDecimal!
   # all time USD swapped
   volumeUSD: BigDecimal!
   # all time USD swapped, unfiltered for unreliable USD pools
@@ -434,6 +438,8 @@ type Swap @entity {
   tick: BigInt!
   # index within the txn
   logIndex: BigInt
+  # block Number 
+  blockNumber: BigInt
 }
 
 type Collect @entity {
@@ -546,13 +552,17 @@ type PoolDayData @entity {
   tvlToken1USD: BigDecimal!
   # volume in token0
   # fee token0
-
   feesToken0: BigDecimal!
   # fee token1
   feesToken1: BigDecimal!
+  # volume in token0
   volumeToken0: BigDecimal!
   # volume in token1
   volumeToken1: BigDecimal!
+  # volume in token0 in USD
+  volumeToken0USD: BigDecimal!
+  # volume in token1 in USD
+  volumeToken1USD: BigDecimal!
   # volume in USD
   volumeUSD: BigDecimal!
   # fees in USD
