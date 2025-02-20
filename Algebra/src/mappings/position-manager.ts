@@ -314,6 +314,7 @@ function savePositionSnapshot(position: Position, event: ethereum.Event): void {
 
   positionSnapshot.tickLower = getSqrtRatioAtTick(tickLower)
   positionSnapshot.tickUpper = getSqrtRatioAtTick(tickUpper)
+  positionSnapshot.currentTick = pool.tick
 
   let amount0Matic = positionSnapshot.liquidityToken0.times(token0.derivedMatic)
   let amount1Matic = positionSnapshot.liquidityToken1.times(token1.derivedMatic)

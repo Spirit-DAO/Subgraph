@@ -286,6 +286,8 @@ type PositionSnapshot @entity {
   tickLower: BigInt!
   # sqrt price of the upper tick
   tickUpper: BigInt!
+  # pool current tick
+  currentTick: BigInt!
   # block in which the snap was created
   blockNumber: BigInt!
   # timestamp of block in which the snap was created
