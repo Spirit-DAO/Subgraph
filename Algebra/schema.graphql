@@ -522,6 +522,8 @@ type PoolDayData @entity {
   id: ID!
   # timestamp rounded to current day by dividing by 86400
   date: Int!
+  # block number
+  blockNumber: BigInt!
   # pointer to pool
   pool: Pool!
   # in range liquidity at end of period
@@ -800,4 +802,45 @@ type FeeHourData @entity {
   startFee: BigInt!
   #
   endFee: BigInt! 
+}
+
+type PoolSecondData @entity {
+  # format: <pool address>-<timestamp>
+  id: ID!
+  # unix timestamp for the second
+  timestamp: BigInt!
+  # pointer to pool
+  pool: Pool!
+  # current tick
+  tick: BigInt!
+  # in range liquidity
+  liquidity: BigInt!
+  # opening price of token0
+  open0: BigDecimal!
+  # opening price of token1 
+  open1: BigDecimal!
+  # highest price of token0 during this second
+  high0: BigDecimal!
+  # highest price of token1 during this second
+  high1: BigDecimal!
+  # lowest price of token0 during this second
+  low0: BigDecimal!
+  # lowest price of token1 during this second
+  low1: BigDecimal!
+  # closing price of token0
+  close0: BigDecimal!
+  # closing price of token1
+  close1: BigDecimal!
+  # current price of token0
+  price0: BigDecimal!
+  # current price of token1
+  price1: BigDecimal!
+  # token0 price in native currency (Matic)
+  token0PriceMatic: BigDecimal!
+  # token1 price in native currency (Matic)
+  token1PriceMatic: BigDecimal!
+  # token0 price in USD
+  token0PriceUSD: BigDecimal!
+  # token1 price in USD  
+  token1PriceUSD: BigDecimal!
 }

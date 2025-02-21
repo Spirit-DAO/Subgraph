@@ -12,7 +12,8 @@ import {
   PoolHourData,
   TickDayData,
   FeeHourData,
-  Tick
+  Tick,
+  PoolSecondData
 } from './../types/schema'
 import { FACTORY_ADDRESS } from './constants'
 import { ethereum, BigInt } from '@graphprotocol/graph-ts'
@@ -55,6 +56,7 @@ export function updatePoolDayData(event: ethereum.Event): PoolDayData {
   if (poolDayData === null) {
     poolDayData = new PoolDayData(dayPoolID)
     poolDayData.date = dayStartTimestamp
+    poolDayData.blockNumber = event.block.number
     poolDayData.pool = pool.id
     // things that dont get initialized always
     poolDayData.volumeToken0 = ZERO_BD
@@ -97,7 +99,6 @@ export function updatePoolDayData(event: ethereum.Event): PoolDayData {
   poolDayData.fee = pool.fee
   poolDayData.txCount = poolDayData.txCount.plus(ONE_BI)
   poolDayData.save()
-
 
   return poolDayData as PoolDayData
 }
@@ -311,4 +312,73 @@ export function updateTickDayData(tick: Tick, event: ethereum.Event): TickDayDat
   tickDayData.save()
 
   return tickDayData as TickDayData
+}
+
+export function updatePoolSecondData(event: ethereum.Event): PoolSecondData {
+  let timestamp = event.block.timestamp.toI32()
+  let secondId = event.address
+    .toHexString()
+    .concat('-')
+    .concat(timestamp.toString())
+  let pool = Pool.load(event.address.toHexString())!
+  let poolSecondData = PoolSecondData.load(secondId)
+  
+  // Load tokens and bundle for price calculations
+  let token0 = Token.load(pool.token0)!
+  let token1 = Token.load(pool.token1)!
+  let bundle = Bundle.load('1')!
+
+  if (poolSecondData === null) {
+    poolSecondData = new PoolSecondData(secondId)
+    poolSecondData.timestamp = event.block.timestamp
+    poolSecondData.pool = pool.id
+    poolSecondData.tick = pool.tick
+    poolSecondData.liquidity = pool.liquidity
+    poolSecondData.open0 = pool.token0Price
+    poolSecondData.open1 = pool.token1Price
+    poolSecondData.high0 = pool.token0Price
+    poolSecondData.high1 = pool.token1Price 
+    poolSecondData.low0 = pool.token0Price
+    poolSecondData.low1 = pool.token1Price
+    poolSecondData.price0 = pool.token0Price
+    poolSecondData.price1 = pool.token1Price
+    poolSecondData.close0 = pool.token0Price
+    poolSecondData.close1 = pool.token1Price
+    poolSecondData.token0PriceMatic = token0.derivedMatic
+    poolSecondData.token1PriceMatic = token1.derivedMatic
+    poolSecondData.token0PriceUSD = token0.derivedMatic.times(bundle.maticPriceUSD)
+    poolSecondData.token1PriceUSD = token1.derivedMatic.times(bundle.maticPriceUSD)
+  } else {
+    // Update high/low if current prices exceed previous values
+    if (pool.token0Price.gt(poolSecondData.high0)) {
+      poolSecondData.high0 = pool.token0Price
+    }
+    if (pool.token1Price.gt(poolSecondData.high1)) {
+      poolSecondData.high1 = pool.token1Price
+    }
+    if (pool.token0Price.lt(poolSecondData.low0)) {
+      poolSecondData.low0 = pool.token0Price
+    }
+    if (pool.token1Price.lt(poolSecondData.low1)) {
+      poolSecondData.low1 = pool.token1Price
+    }
+  }
+
+  // Always update current prices, closing prices, tick and liquidity
+  poolSecondData.price0 = pool.token0Price
+  poolSecondData.price1 = pool.token1Price
+  poolSecondData.close0 = pool.token0Price
+  poolSecondData.close1 = pool.token1Price
+  poolSecondData.tick = pool.tick
+  poolSecondData.liquidity = pool.liquidity
+  
+  // Update derived prices
+  poolSecondData.token0PriceMatic = token0.derivedMatic
+  poolSecondData.token1PriceMatic = token1.derivedMatic
+  poolSecondData.token0PriceUSD = token0.derivedMatic.times(bundle.maticPriceUSD)
+  poolSecondData.token1PriceUSD = token1.derivedMatic.times(bundle.maticPriceUSD)
+
+  poolSecondData.save()
+
+  return poolSecondData as PoolSecondData
 }
