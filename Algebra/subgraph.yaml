@@ -5,11 +5,11 @@ schema:
 dataSources:
   - kind: ethereum/contract
     name: Factory
-    network: sonic-mainnet
+    network: nibiru-mainnet
     source:
       address: '0xb860200BD68dc39cEAfd6ebb82883f189f4CdA76'
       abi: Factory
-      startBlock: 186117 
+      startBlock: 19674297 
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -36,11 +36,11 @@ dataSources:
           handler: handleNewCommunityFee
   - kind: ethereum/contract
     name: NonfungiblePositionManager
-    network: sonic-mainnet
+    network: nibiru-mainnet
     source:
       address: '0x5084E9fDF9264489A14E77c011073D757e572bB4'
       abi: NonfungiblePositionManager
-      startBlock: 268579 
+      startBlock: 19683169 
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -71,7 +71,7 @@ dataSources:
 templates:
   - kind: ethereum/contract
     name: Pool
-    network: sonic-mainnet
+    network: nibiru-mainnet
     source:
       abi: Pool
     mapping:
