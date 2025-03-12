@@ -24,7 +24,6 @@ import {
   updateTokenHourData,
   updateAlgebraDayData,
   updateFeeHourData,
-  updatePoolSecondData
 } from '../utils/intervalUpdates'
 import { createTick } from '../utils/tick'
 
@@ -613,8 +612,6 @@ export function handleSwap(event: SwapEvent): void {
       loadTickUpdateFeeVarsAndSave(i.toI32(), event)
     }
   }
-
-  updatePoolSecondData(event)
 }
 
 export function handleSetCommunityFee(event: CommunityFee): void {

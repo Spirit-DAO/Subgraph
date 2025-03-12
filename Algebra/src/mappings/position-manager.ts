@@ -11,6 +11,7 @@ import { ADDRESS_ZERO, factoryContract, ZERO_BD, ZERO_BI, pools_list, ONE_BI} fr
 import { Address, BigInt, ethereum, log } from '@graphprotocol/graph-ts'
 import { convertTokenToDecimal, loadTransaction } from '../utils'
 import { getEthPriceInUSD } from '../utils/pricing'
+import { trackPosition, untrackPosition, updatePositionDayData } from '../utils/intervalUpdates'
 
 
 
@@ -366,15 +367,15 @@ export function handleIncreaseLiquidity(event: IncreaseLiquidity): void {
   let amount1 = ZERO_BD
   let amount0 = ZERO_BD
 
-    if(pools_list.includes(position.pool))
-      amount0 = convertTokenToDecimal(event.params.amount1, token0!.decimals)
-    else
-      amount0 = convertTokenToDecimal(event.params.amount0, token0!.decimals)
+  if(pools_list.includes(position.pool))
+    amount0 = convertTokenToDecimal(event.params.amount1, token0!.decimals)
+  else
+    amount0 = convertTokenToDecimal(event.params.amount0, token0!.decimals)
 
-    if(pools_list.includes(position.pool))
-      amount1 = convertTokenToDecimal(event.params.amount0, token1!.decimals)
-    else
-      amount1 = convertTokenToDecimal(event.params.amount1, token1!.decimals)
+  if(pools_list.includes(position.pool))
+    amount1 = convertTokenToDecimal(event.params.amount0, token1!.decimals)
+  else
+    amount1 = convertTokenToDecimal(event.params.amount1, token1!.decimals)
 
   position.liquidity = position.liquidity.plus(event.params.liquidity)
   position.depositedToken0 = position.depositedToken0.plus(amount0)
@@ -383,13 +384,17 @@ export function handleIncreaseLiquidity(event: IncreaseLiquidity): void {
   position.depositedToken0USD = position.depositedToken0USD.plus(amount0.times(token0!.derivedMatic).times(bundle.maticPriceUSD))
   position.depositedToken1USD = position.depositedToken1USD.plus(amount1.times(token1!.derivedMatic).times(bundle.maticPriceUSD))
 
-
   // recalculatePosition(position)
 
   position.save()
+  
+  // Track the position for day data updates
+  trackPosition(position.id)
+  
+  // Update position day data
+  updatePositionDayData(position, event)
 
   savePositionSnapshot(position, event)
-  
 }
 
 export function handleDecreaseLiquidity(event: DecreaseLiquidity): void {
@@ -404,20 +409,19 @@ export function handleDecreaseLiquidity(event: DecreaseLiquidity): void {
   let token0 = Token.load(position.token0)
   let token1 = Token.load(position.token1)
 
-
   let amount1 = ZERO_BD
   let amount0 = ZERO_BD
 
-    if(pools_list.includes(position.pool))
-      amount0 = convertTokenToDecimal(event.params.amount1, token0!.decimals)
-    else
-      amount0 = convertTokenToDecimal(event.params.amount0, token0!.decimals)
+  if(pools_list.includes(position.pool))
+    amount0 = convertTokenToDecimal(event.params.amount1, token0!.decimals)
+  else
+    amount0 = convertTokenToDecimal(event.params.amount0, token0!.decimals)
   
 
-    if(pools_list.includes(position.pool))
-      amount1 = convertTokenToDecimal(event.params.amount0, token1!.decimals)
-    else
-      amount1 = convertTokenToDecimal(event.params.amount1, token1!.decimals)
+  if(pools_list.includes(position.pool))
+    amount1 = convertTokenToDecimal(event.params.amount0, token1!.decimals)
+  else
+    amount1 = convertTokenToDecimal(event.params.amount1, token1!.decimals)
   
 
   position.liquidity = position.liquidity.minus(event.params.liquidity)
@@ -432,6 +436,14 @@ export function handleDecreaseLiquidity(event: DecreaseLiquidity): void {
   // recalculatePosition(position)
 
   position.save()
+  
+  // Update position day data
+  updatePositionDayData(position, event)
+  
+  // If position has zero liquidity, stop tracking it
+  if (position.liquidity.equals(ZERO_BI)) {
+    untrackPosition(position.id)
+  }
 
   savePositionSnapshot(position, event)
 }
@@ -492,10 +504,25 @@ export function handleTransfer(event: Transfer): void {
   if (position == null) {
     return
   }
+  
+  // If this is a mint (transfer from zero address to someone)
+  if (event.params.from.toHexString() == ADDRESS_ZERO) {
+    // Start tracking the position for day data updates
+    trackPosition(position.id)
+  }
+  
+  // If this is a burn (transfer to zero address)
+  if (event.params.to.toHexString() == ADDRESS_ZERO) {
+    // Stop tracking the position for day data updates
+    untrackPosition(position.id)
+  }
 
   position.owner = event.params.to
   position.save()
 
+  // Update position day data on transfers as well
+  updatePositionDayData(position, event)
+  
   savePositionSnapshot(position, event)
 }
 

@@ -152,7 +152,6 @@ type Pool @entity {
   # hourly snapshots of pool data
   poolHourData: [PoolHourData!]! @derivedFrom(field: "pool")
   # daily snapshots of pool data
-
   poolDayData: [PoolDayData!]! @derivedFrom(field: "pool")
   # derived fields
   mints: [Mint!]! @derivedFrom(field: "pool")
@@ -282,10 +281,6 @@ type PositionSnapshot @entity {
   pool: Pool!
   # position of which the snap was taken of
   position: Position!
-  # sqrt price of the lower tick
-  tickLower: BigInt!
-  # sqrt price of the upper tick
-  tickUpper: BigInt!
   # pool current tick
   currentTick: BigInt!
   # block in which the snap was created
@@ -321,7 +316,71 @@ type PositionSnapshot @entity {
   feeGrowthInside1LastX128: BigInt!
 }
 
-type Transaction @entity {
+# Entity to track active positions for day data updates
+type ActivePositions @entity {
+  id: ID! # Use a constant ID like "all"
+  positions: [String!]! # Array of position IDs
+  count: BigInt! # Count of active positions
+}
+
+# Data accumulated for a position over daily time increments
+type PositionDayData @entity {
+  # position ID concatenated with timestamp rounded to current day by dividing by 86400
+  id: ID!
+  # timestamp rounded to current day by dividing by 86400
+  date: Int!
+  # pointer to position
+  position: Position!
+  # pointer to owner
+  owner: Bytes!
+  # pointer to pool
+  pool: Pool!
+  # pointer to token0
+  token0: Token!
+  # pointer to token1
+  token1: Token!
+  # pointer to lower tick
+  tickLower: Tick!
+  # pointer to upper tick 
+  tickUpper: Tick!
+  # liquidity of the position
+  liquidity: BigInt!
+  # current block number
+  blockNumber: BigInt!
+  # amount of token 0 deposited
+  depositedToken0: BigDecimal!
+  # amount of token 1 deposited
+  depositedToken1: BigDecimal!
+  # amount of token 0 deposited in USD
+  depositedToken0USD: BigDecimal!
+  # amount of token 1 deposited in USD
+  depositedToken1USD: BigDecimal!
+  # amount of token 0 withdrawn
+  withdrawnToken0: BigDecimal!
+  # amount of token 1 withdrawn
+  withdrawnToken1: BigDecimal!
+  # amount of token 0 withdrawn in USD
+  withdrawnToken0USD: BigDecimal!
+  # amount of token 1 withdrawn in USD
+  withdrawnToken1USD: BigDecimal!
+  # collected fees in token0
+  collectedFeesToken0: BigDecimal!
+  # collected fees in token1
+  collectedFeesToken1: BigDecimal!
+  # collected fees in token0 in USD
+  collectedFeesToken0USD: BigDecimal!
+  # collected fees in token1 in USD
+  collectedFeesToken1USD: BigDecimal!
+  # tvl in token0
+  token0Tvl: BigDecimal
+  # tvl in token1
+  token1Tvl: BigDecimal
+  # internal vars needed for fee computation
+  feeGrowthInside0LastX128: BigInt!
+  feeGrowthInside1LastX128: BigInt!
+}
+
+type Transaction @entity(immutable: true) {
   # txn hash
   id: ID!
   # block txn was included in
@@ -339,7 +398,7 @@ type Transaction @entity {
   collects: [Collect!]! @derivedFrom(field: "transaction")
 }
 
-type Mint @entity {
+type Mint @entity(immutable: true) {
   # transaction hash + "#" + index in mints Transaction array
   id: ID!
   # which txn the mint was included in
@@ -374,7 +433,7 @@ type Mint @entity {
   logIndex: BigInt
 }
 
-type Burn @entity {
+type Burn @entity(immutable: true) {
   # transaction hash + "#" + index in mints Transaction array
   id: ID!
   # txn burn was included in
@@ -407,7 +466,7 @@ type Burn @entity {
   logIndex: BigInt
 }
 
-type Swap @entity {
+type Swap @entity(immutable: true) {
   # transaction hash + "#" + index in swaps Transaction array
   id: ID!
   # pointer to transaction
@@ -444,7 +503,7 @@ type Swap @entity {
   blockNumber: BigInt
 }
 
-type Collect @entity {
+type Collect @entity(immutable: true) {
   # transaction hash + "#" + index in collect Transaction array
   id: ID!
   # pointer to txn
@@ -469,7 +528,7 @@ type Collect @entity {
   logIndex: BigInt
 }
 
-type Flash @entity {
+type Flash @entity(immutable: true) {
   # transaction hash + "-" + index in collect Transaction array
   id: ID!
   # pointer to txn

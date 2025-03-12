@@ -13,10 +13,11 @@ import {
   TickDayData,
   FeeHourData,
   Tick,
-  PoolSecondData
+  Position,
+  ActivePositions
 } from './../types/schema'
 import { FACTORY_ADDRESS } from './constants'
-import { ethereum, BigInt } from '@graphprotocol/graph-ts'
+import { ethereum, BigInt, store, Entity, Value, ValueKind, BigDecimal } from '@graphprotocol/graph-ts'
 /**
  * Tracks global aggregate data over daily windows
  * @param event
@@ -114,8 +115,8 @@ export function updateFeeHourData(event: ethereum.Event, Fee: BigInt): void{
   let FeeHourDataEntity = FeeHourData.load(hourFeeID)
   if(FeeHourDataEntity){
     FeeHourDataEntity.timestamp = BigInt.fromI32(hourStartUnix)
-    FeeHourDataEntity.fee += Fee
-    FeeHourDataEntity.changesCount += ONE_BI
+    FeeHourDataEntity.fee = FeeHourDataEntity.fee.plus(Fee)
+    FeeHourDataEntity.changesCount = FeeHourDataEntity.changesCount.plus(ONE_BI)
     if(FeeHourDataEntity.maxFee < Fee) FeeHourDataEntity.maxFee = Fee
     if(FeeHourDataEntity.minFee > Fee) FeeHourDataEntity.minFee = Fee  
     FeeHourDataEntity.endFee = Fee
@@ -314,71 +315,128 @@ export function updateTickDayData(tick: Tick, event: ethereum.Event): TickDayDat
   return tickDayData as TickDayData
 }
 
-export function updatePoolSecondData(event: ethereum.Event): PoolSecondData {
-  let timestamp = event.block.timestamp.toI32()
-  let secondId = event.address
-    .toHexString()
-    .concat('-')
-    .concat(timestamp.toString())
-  let pool = Pool.load(event.address.toHexString())!
-  let poolSecondData = PoolSecondData.load(secondId)
+/**
+ * Adds a position to the active positions tracking entity
+ */
+export function trackPosition(positionId: string): void {
+  let activePositions = ActivePositions.load('all')
   
-  // Load tokens and bundle for price calculations
-  let token0 = Token.load(pool.token0)!
-  let token1 = Token.load(pool.token1)!
-  let bundle = Bundle.load('1')!
-
-  if (poolSecondData === null) {
-    poolSecondData = new PoolSecondData(secondId)
-    poolSecondData.timestamp = event.block.timestamp
-    poolSecondData.pool = pool.id
-    poolSecondData.tick = pool.tick
-    poolSecondData.liquidity = pool.liquidity
-    poolSecondData.open0 = pool.token0Price
-    poolSecondData.open1 = pool.token1Price
-    poolSecondData.high0 = pool.token0Price
-    poolSecondData.high1 = pool.token1Price 
-    poolSecondData.low0 = pool.token0Price
-    poolSecondData.low1 = pool.token1Price
-    poolSecondData.price0 = pool.token0Price
-    poolSecondData.price1 = pool.token1Price
-    poolSecondData.close0 = pool.token0Price
-    poolSecondData.close1 = pool.token1Price
-    poolSecondData.token0PriceMatic = token0.derivedMatic
-    poolSecondData.token1PriceMatic = token1.derivedMatic
-    poolSecondData.token0PriceUSD = token0.derivedMatic.times(bundle.maticPriceUSD)
-    poolSecondData.token1PriceUSD = token1.derivedMatic.times(bundle.maticPriceUSD)
-  } else {
-    // Update high/low if current prices exceed previous values
-    if (pool.token0Price.gt(poolSecondData.high0)) {
-      poolSecondData.high0 = pool.token0Price
-    }
-    if (pool.token1Price.gt(poolSecondData.high1)) {
-      poolSecondData.high1 = pool.token1Price
-    }
-    if (pool.token0Price.lt(poolSecondData.low0)) {
-      poolSecondData.low0 = pool.token0Price
-    }
-    if (pool.token1Price.lt(poolSecondData.low1)) {
-      poolSecondData.low1 = pool.token1Price
+  if (activePositions === null) {
+    activePositions = new ActivePositions('all')
+    activePositions.positions = []
+    activePositions.count = ZERO_BI
+  }
+  
+  let positions = activePositions.positions
+  let found = false
+  
+  for (let i = 0; i < positions.length; i++) {
+    if (positions[i] == positionId) {
+      found = true
+      break
     }
   }
-
-  // Always update current prices, closing prices, tick and liquidity
-  poolSecondData.price0 = pool.token0Price
-  poolSecondData.price1 = pool.token1Price
-  poolSecondData.close0 = pool.token0Price
-  poolSecondData.close1 = pool.token1Price
-  poolSecondData.tick = pool.tick
-  poolSecondData.liquidity = pool.liquidity
   
-  // Update derived prices
-  poolSecondData.token0PriceMatic = token0.derivedMatic
-  poolSecondData.token1PriceMatic = token1.derivedMatic
-  poolSecondData.token0PriceUSD = token0.derivedMatic.times(bundle.maticPriceUSD)
-  poolSecondData.token1PriceUSD = token1.derivedMatic.times(bundle.maticPriceUSD)
+  if (!found) {
+    positions.push(positionId)
+    activePositions.positions = positions
+    activePositions.count = BigInt.fromI32(positions.length)
+    activePositions.save()
+  }
+}
 
-  poolSecondData.save()
+/**
+ * Removes a position from the active positions tracking entity
+ */
+export function untrackPosition(positionId: string): void {
+  let activePositions = ActivePositions.load('all')
+  
+  if (activePositions !== null) {
+    let positions = activePositions.positions
+    let updatedPositions: string[] = []
+    
+    for (let i = 0; i < positions.length; i++) {
+      if (positions[i] != positionId) {
+        updatedPositions.push(positions[i])
+      }
+    }
+    
+    activePositions.positions = updatedPositions
+    activePositions.count = BigInt.fromI32(updatedPositions.length)
+    activePositions.save()
+  }
+}
 
-  return poolSecondData as PoolSecondData
+export function updatePositionDayData(position: Position, event: ethereum.Event): void {
+  let timestamp = event.block.timestamp.toI32()
+  let dayID = timestamp / 86400
+  let dayStartTimestamp = dayID * 86400
+  let positionDayDataID = position.id
+    .toString()
+    .concat('-')
+    .concat(dayID.toString())
+  
+  // Since PositionDayData type may not be available until we regenerate types,
+  // we'll use the generic Entity API
+  let entity = new Entity()
+  entity.set('id', Value.fromString(positionDayDataID))
+  entity.set('date', Value.fromI32(dayStartTimestamp))
+  entity.set('position', Value.fromString(position.id))
+  entity.set('owner', Value.fromBytes(position.owner))
+  entity.set('pool', Value.fromString(position.pool))
+  entity.set('token0', Value.fromString(position.token0))
+  entity.set('token1', Value.fromString(position.token1))
+  entity.set('tickLower', Value.fromString(position.tickLower))
+  entity.set('tickUpper', Value.fromString(position.tickUpper))
+  entity.set('liquidity', Value.fromBigInt(position.liquidity))
+  entity.set('blockNumber', Value.fromBigInt(event.block.number))
+  entity.set('depositedToken0', Value.fromBigDecimal(position.depositedToken0))
+  entity.set('depositedToken1', Value.fromBigDecimal(position.depositedToken1))
+  entity.set('depositedToken0USD', Value.fromBigDecimal(position.depositedToken0USD))
+  entity.set('depositedToken1USD', Value.fromBigDecimal(position.depositedToken1USD))
+  entity.set('withdrawnToken0', Value.fromBigDecimal(position.withdrawnToken0))
+  entity.set('withdrawnToken1', Value.fromBigDecimal(position.withdrawnToken1))
+  entity.set('withdrawnToken0USD', Value.fromBigDecimal(position.withdrawnToken0USD))
+  entity.set('withdrawnToken1USD', Value.fromBigDecimal(position.withdrawnToken1USD))
+  entity.set('collectedFeesToken0', Value.fromBigDecimal(position.collectedFeesToken0))
+  entity.set('collectedFeesToken1', Value.fromBigDecimal(position.collectedFeesToken1))
+  entity.set('collectedFeesToken0USD', Value.fromBigDecimal(position.collectedFeesToken0USD))
+  entity.set('collectedFeesToken1USD', Value.fromBigDecimal(position.collectedFeesToken1USD))
+  entity.set('feeGrowthInside0LastX128', Value.fromBigInt(position.feeGrowthInside0LastX128))
+  entity.set('feeGrowthInside1LastX128', Value.fromBigInt(position.feeGrowthInside1LastX128))
+  
+  // Add token TVL values if they exist
+  if (position.token0Tvl !== null) {
+    entity.set('token0Tvl', Value.fromBigDecimal(position.token0Tvl as BigDecimal))
+  }
+  
+  if (position.token1Tvl !== null) {
+    entity.set('token1Tvl', Value.fromBigDecimal(position.token1Tvl as BigDecimal))
+  }
+  
+  store.set('PositionDayData', positionDayDataID, entity)
+}
+
+/**
+ * Update all positions for a given block - ensures that even if positions 
+ * don't have user interactions, they will have updated day data
+ */
+export function updateAllPositionDayData(event: ethereum.Event): void {
+  // Check if we're at the end of a day
+  let timestamp = event.block.timestamp.toI32()
+  let isEndOfDay = timestamp % 86400 >= 86350 // Within ~1 minute of day end
+  
+  if (isEndOfDay) {
+    let activePositions = ActivePositions.load('all')
+    if (activePositions !== null) {
+      let positions = activePositions.positions
+      
+      for (let i = 0; i < positions.length; i++) {
+        let position = Position.load(positions[i])
+        if (position !== null) {
+          updatePositionDayData(position, event)
+        }
+      }
+    }
+  }
 }
