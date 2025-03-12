@@ -24,7 +24,6 @@ import {
   updateTokenHourData,
   updateAlgebraDayData,
   updateFeeHourData,
-  updatePoolSecondData
 } from '../utils/intervalUpdates'
 import { createTick } from '../utils/tick'
 
@@ -485,7 +484,6 @@ export function handleSwap(event: SwapEvent): void {
   let transaction = loadTransaction(event)
   let swap = new Swap(transaction.id + '#' + pool.txCount.toString())
   swap.transaction = transaction.id
-  swap.timestamp = transaction.timestamp
   swap.pool = pool.id
   swap.token0 = pool.token0
   swap.token1 = pool.token1
@@ -571,6 +569,16 @@ export function handleSwap(event: SwapEvent): void {
   token1HourData.volumeUSD = token1HourData.volumeUSD.plus(amountTotalUSDTracked)
   token1HourData.untrackedVolumeUSD = token1HourData.untrackedVolumeUSD.plus(amountTotalUSDTracked)
   token1HourData.feesUSD = token1HourData.feesUSD.plus(feesUSD)
+	
+  swap.feesToken0 = fees0
+  swap.feesToken1 = fees1
+  swap.feesUSD = feesUSD
+  swap.price0 = pool.token0Price
+  swap.price1 = pool.token1Price
+  swap.price0USD = token0.derivedMatic.times(bundle.maticPriceUSD)
+  swap.price1USD = token1.derivedMatic.times(bundle.maticPriceUSD)
+  swap.price0Matic = token0.derivedMatic
+  swap.price1Matic = token1.derivedMatic
 
   swap.save()
   token0DayData.save()
@@ -613,8 +621,6 @@ export function handleSwap(event: SwapEvent): void {
       loadTickUpdateFeeVarsAndSave(i.toI32(), event)
     }
   }
-
-  updatePoolSecondData(event)
 }
 
 export function handleSetCommunityFee(event: CommunityFee): void {

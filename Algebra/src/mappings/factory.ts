@@ -151,6 +151,8 @@ export function handlePoolCreated(event: PoolEvent): void {
   pool.feesToken1 = ZERO_BD
   pool.untrackedVolumeUSD = ZERO_BD
   pool.untrackedFeesUSD = ZERO_BD
+  pool.totalValueLockedToken0USD = ZERO_BD
+  pool.totalValueLockedToken1USD = ZERO_BD
 
   pool.collectedFeesToken0 = ZERO_BD
   pool.collectedFeesToken1 = ZERO_BD

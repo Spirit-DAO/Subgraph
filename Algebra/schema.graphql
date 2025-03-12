@@ -273,7 +273,7 @@ type Position @entity {
   token1Tvl : BigDecimal 
 }
 
-type PositionSnapshot @entity {
+type PositionSnapshot @entity(immutable: true) {
   # <NFT token id>#<block number>
   id: ID!
   # owner of the NFT
@@ -282,12 +282,6 @@ type PositionSnapshot @entity {
   pool: Pool!
   # position of which the snap was taken of
   position: Position!
-  # sqrt price of the lower tick
-  tickLower: BigInt!
-  # sqrt price of the upper tick
-  tickUpper: BigInt!
-  # pool current tick
-  currentTick: BigInt!
   # block in which the snap was created
   blockNumber: BigInt!
   # timestamp of block in which the snap was created
@@ -319,9 +313,13 @@ type PositionSnapshot @entity {
   # internal vars needed for fee computation
   feeGrowthInside0LastX128: BigInt!
   feeGrowthInside1LastX128: BigInt!
+  # tick lower
+  tickLower: BigInt!
+  # tick upper
+  tickUpper: BigInt!
 }
 
-type Transaction @entity {
+type Transaction @entity(immutable: true) {
   # txn hash
   id: ID!
   # block txn was included in
@@ -339,7 +337,7 @@ type Transaction @entity {
   collects: [Collect!]! @derivedFrom(field: "transaction")
 }
 
-type Mint @entity {
+type Mint @entity(immutable: true) {
   # transaction hash + "#" + index in mints Transaction array
   id: ID!
   # which txn the mint was included in
@@ -374,7 +372,7 @@ type Mint @entity {
   logIndex: BigInt
 }
 
-type Burn @entity {
+type Burn @entity(immutable: true) {
   # transaction hash + "#" + index in mints Transaction array
   id: ID!
   # txn burn was included in
@@ -407,13 +405,13 @@ type Burn @entity {
   logIndex: BigInt
 }
 
-type Swap @entity {
+type Swap @entity(timeseries: true, immutable: true) {
   # transaction hash + "#" + index in swaps Transaction array
-  id: ID!
+  id: Int8!
   # pointer to transaction
   transaction: Transaction!
   # timestamp of transaction
-  timestamp: BigInt!
+  timestamp: Timestamp!
   # pool swap occured within
   pool: Pool!
   # allow indexing by tokens
@@ -442,9 +440,73 @@ type Swap @entity {
   logIndex: BigInt
   # block Number 
   blockNumber: BigInt
+  # fee in token0
+  feesToken0: BigDecimal!
+  # fee in token1
+  feesToken1: BigDecimal!
+  # fee in USD
+  feesUSD: BigDecimal!
+  # price of token0
+  price0: BigDecimal!
+  # price of token1
+  price1: BigDecimal!
+  # token0 price in USD
+  price0USD: BigDecimal!
+  # token1 price in USD
+  price1USD: BigDecimal!
+  # token0 price in Matic
+  price0Matic: BigDecimal!
+  # token1 price in Matic
+  price1Matic: BigDecimal!
 }
 
-type Collect @entity {
+type PoolStats @aggregation(intervals: ["hour", "day"], source: "Swap") {
+  id: Int8!
+  # unix timestamp for the minute
+  timestamp: Timestamp!
+  # pointer to pool
+  pool: Pool!
+  # opening price of token0
+  open0: BigDecimal! @aggregate(fn: "first", arg: "price0")
+  # opening price of token1 
+  open1: BigDecimal! @aggregate(fn: "first", arg: "price1")
+  # highest price of token0 during this minute
+  high0: BigDecimal! @aggregate(fn: "max", arg: "price0")
+  # highest price of token1 during this minute
+  high1: BigDecimal! @aggregate(fn: "max", arg: "price1")
+  # lowest price of token0 during this minute
+  low0: BigDecimal! @aggregate(fn: "min", arg: "price0")
+  # lowest price of token1 during this minute
+  low1: BigDecimal! @aggregate(fn: "min", arg: "price1")
+  # closing price of token0
+  close0: BigDecimal! @aggregate(fn: "last", arg: "price0")
+  # closing price of token1
+  close1: BigDecimal! @aggregate(fn: "last", arg: "price1")
+  # current price of token0
+  price0: BigDecimal! @aggregate(fn: "last", arg: "price0")
+  # current price of token1
+  price1: BigDecimal! @aggregate(fn: "last", arg: "price1")
+  # token0 price in native currency (Matic)
+  token0PriceMatic: BigDecimal! @aggregate(fn: "last", arg: "price0Matic")
+  # token1 price in native currency (Matic)
+  token1PriceMatic: BigDecimal! @aggregate(fn: "last", arg: "price1Matic")
+  # token0 price in USD
+  token0PriceUSD: BigDecimal! @aggregate(fn: "last", arg: "price0USD")
+  # token1 price in USD  
+  token1PriceUSD: BigDecimal! @aggregate(fn: "last", arg: "price1USD")
+  # volume in USD during this minute
+  totalVolumeUSD: BigDecimal! @aggregate(fn: "sum", arg: "amountUSD")
+  # fees collected in token0
+  totalFeesToken0: BigDecimal! @aggregate(fn: "sum", arg: "feesToken0")
+  # fees collected in token1
+  totalFeesToken1: BigDecimal! @aggregate(fn: "sum", arg: "feesToken1")
+  # fees collected in USD
+  totalFeesUSD: BigDecimal! @aggregate(fn: "sum", arg: "feesUSD")
+  # number of transactions during this minute 
+  count: BigInt! @aggregate(fn: "count", cumulative: true)
+}
+
+type Collect @entity(immutable: true) {
   # transaction hash + "#" + index in collect Transaction array
   id: ID!
   # pointer to txn
@@ -576,13 +638,21 @@ type PoolDayData @entity {
   # numebr of transactions during period
   txCount: BigInt!
   # opening price of token0
-  open: BigDecimal!
+  open0: BigDecimal!
+  # opening price of token1
+  open1: BigDecimal!
   # high price of token0
-  high: BigDecimal!
+  high0: BigDecimal!
+  # high price of token1
+  high1: BigDecimal!
   # low price of token0
-  low: BigDecimal!
+  low0: BigDecimal!
+  # low price of token1
+  low1: BigDecimal!
   # close price of token0
-  close: BigDecimal!
+  close0: BigDecimal!
+  # close price of token1
+  close1: BigDecimal!
   # number token 0 fees
   fees0: BigDecimal!
   # number token 1 fees
@@ -648,7 +718,6 @@ type PoolHourData @entity {
   volumeToken1: BigDecimal!
   # volume in USD
   volumeUSD: BigDecimal!
-
   # fees in USD
   feesUSD: BigDecimal!
   # community fees in USD
@@ -657,13 +726,21 @@ type PoolHourData @entity {
   untrackedVolumeUSD: BigDecimal!
   txCount: BigInt!
   # opening price of token0
-  open: BigDecimal!
+  open0: BigDecimal!
+  # opening price of token1
+  open1: BigDecimal!
   # high price of token0
-  high: BigDecimal!
+  high0: BigDecimal!
+  # high price of token1
+  high1: BigDecimal!
   # low price of token0
-  low: BigDecimal!
+  low0: BigDecimal!
+  # low price of token1
+  low1: BigDecimal!
   # close price of token0
-  close: BigDecimal!
+  close0: BigDecimal!
+  # close price of token1
+  close1: BigDecimal!
   # number token 0 fees
   fees0: BigDecimal!
   # number token 1 fees
@@ -804,43 +881,3 @@ type FeeHourData @entity {
   endFee: BigInt! 
 }
 
-type PoolSecondData @entity {
-  # format: <pool address>-<timestamp>
-  id: ID!
-  # unix timestamp for the second
-  timestamp: BigInt!
-  # pointer to pool
-  pool: Pool!
-  # current tick
-  tick: BigInt!
-  # in range liquidity
-  liquidity: BigInt!
-  # opening price of token0
-  open0: BigDecimal!
-  # opening price of token1 
-  open1: BigDecimal!
-  # highest price of token0 during this second
-  high0: BigDecimal!
-  # highest price of token1 during this second
-  high1: BigDecimal!
-  # lowest price of token0 during this second
-  low0: BigDecimal!
-  # lowest price of token1 during this second
-  low1: BigDecimal!
-  # closing price of token0
-  close0: BigDecimal!
-  # closing price of token1
-  close1: BigDecimal!
-  # current price of token0
-  price0: BigDecimal!
-  # current price of token1
-  price1: BigDecimal!
-  # token0 price in native currency (Matic)
-  token0PriceMatic: BigDecimal!
-  # token1 price in native currency (Matic)
-  token1PriceMatic: BigDecimal!
-  # token0 price in USD
-  token0PriceUSD: BigDecimal!
-  # token1 price in USD  
-  token1PriceUSD: BigDecimal!
-}
