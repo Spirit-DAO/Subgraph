@@ -280,7 +280,7 @@ function calculateLiquidityAmounts(
 }
 
 function savePositionSnapshot(position: Position, event: ethereum.Event): void {
-  let positionSnapshot = new PositionSnapshot(position.id.concat('#').concat(event.block.number.toString()))
+/*   let positionSnapshot = new PositionSnapshot(position.id.concat('#').concat(event.block.number.toString()))
   positionSnapshot.owner = position.owner
   positionSnapshot.pool = position.pool
   positionSnapshot.position = position.id
@@ -312,9 +312,6 @@ function savePositionSnapshot(position: Position, event: ethereum.Event): void {
 
   positionSnapshot.liquidityToken0 = convertTokenToDecimal(amount0, token0.decimals)
   positionSnapshot.liquidityToken1 = convertTokenToDecimal(amount1, token1.decimals)
-
-  positionSnapshot.tickLower = getSqrtRatioAtTick(tickLower)
-  positionSnapshot.tickUpper = getSqrtRatioAtTick(tickUpper)
   positionSnapshot.currentTick = pool.tick
 
   let amount0Matic = positionSnapshot.liquidityToken0.times(token0.derivedMatic)
@@ -349,7 +346,7 @@ function savePositionSnapshot(position: Position, event: ethereum.Event): void {
     positionSnapshot.feeGrowthInside1LastX128 = position.feeGrowthInside1LastX128
   }
 
-  positionSnapshot.save()
+  positionSnapshot.save() */
 }
 
 export function handleIncreaseLiquidity(event: IncreaseLiquidity): void {

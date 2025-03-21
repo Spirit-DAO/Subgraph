@@ -68,7 +68,6 @@ dataSources:
           handler: handleIncreaseLiquidity
         - event: Transfer(indexed address,indexed address,indexed uint256)
           handler: handleTransfer
-  # Add a block handler data source to update position day data
   - kind: ethereum
     name: BlockHandler
     network: sonic-mainnet

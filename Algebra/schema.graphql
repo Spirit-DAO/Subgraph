@@ -380,7 +380,7 @@ type PositionDayData @entity {
   feeGrowthInside1LastX128: BigInt!
 }
 
-type Transaction @entity(immutable: true) {
+type Transaction @entity {
   # txn hash
   id: ID!
   # block txn was included in
@@ -466,7 +466,7 @@ type Burn @entity(immutable: true) {
   logIndex: BigInt
 }
 
-type Swap @entity(immutable: true) {
+type Swap @entity {
   # transaction hash + "#" + index in swaps Transaction array
   id: ID!
   # pointer to transaction
@@ -528,7 +528,7 @@ type Collect @entity(immutable: true) {
   logIndex: BigInt
 }
 
-type Flash @entity(immutable: true) {
+type Flash @entity {
   # transaction hash + "-" + index in collect Transaction array
   id: ID!
   # pointer to txn
