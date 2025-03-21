@@ -5,9 +5,9 @@ schema:
 dataSources:
   - kind: ethereum/contract
     name: Factory
-    network: fantom-testnet
+    network: fantom-blaze
     source:
-      address: '0x3cd3d9da786257c7EC74F80e1661fe40583b0F87'
+      address: '0x986B225758b9d7FD9ea9F775bBb9926129Aa2DA7'
       abi: Factory
       startBlock: 25194165 
     mapping:

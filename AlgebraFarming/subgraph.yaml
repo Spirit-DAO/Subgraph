@@ -5,11 +5,11 @@ schema:
 dataSources:
 - kind: ethereum/contract
   name: NonfungiblePositionManager
-  network: sonic
+  network: sonic-blaze
   source:
-      address: '0x5084E9fDF9264489A14E77c011073D757e572bB4'
+      address: '0xbCc0ab24863CDC363A0A036E85ca02F526daeb7b'
       abi: NonfungiblePositionManager
-      startBlock: 268579
+      startBlock: 12544160
   mapping:
       kind: ethereum/events
       apiVersion: 0.0.6
@@ -36,11 +36,11 @@ dataSources:
           handler: handleDecreaseLiquidity
 - kind: ethereum/contract
   name: EternalFarming
-  network: sonic
+  network: sonic-blaze
   source:
-      address: '0xF5d228fd454e99384BFAa4E695b70A8Cdd4C0C08'
+      address: '0x8d4013882f2f93362b1CB7e6DC6DA215d39911A6'
       abi: EternalFarming
-      startBlock: 268807
+      startBlock: 12545213
   mapping:
       kind: ethereum/events
       apiVersion: 0.0.6

@@ -11,7 +11,7 @@
     "deploy-local": "graph deploy cryptoalgebra/algebra --debug --ipfs http://localhost:5001 --node http://127.0.0.1:8020",
     "deploy-test": "graph deploy --studio spiritv3-test",
     "deploy-telostest": "graph deploy --studio silverswap-telostest",
-    "deploy": "graph deploy silverswap-liquidty-sonic",
+    "deploy": " graph deploy silver-liquidity-sonic-test --node https://subgraphs.alchemy.com/api/subgraphs/deploy --deploy-key BThrOag4aYmvq  --ipfs https://ipfs.satsuma.xyz --version-label",
     "deploy-dev": "graph deploy --studio spiritv3-test",
     "create": "graph create cryptoalgebra/info --node https://api.thegraph.com/create/"
   },
