@@ -398,7 +398,7 @@ type Transaction @entity {
   collects: [Collect!]! @derivedFrom(field: "transaction")
 }
 
-type Mint @entity(immutable: true) {
+type Mint @entity {
   # transaction hash + "#" + index in mints Transaction array
   id: ID!
   # which txn the mint was included in
@@ -433,7 +433,7 @@ type Mint @entity(immutable: true) {
   logIndex: BigInt
 }
 
-type Burn @entity(immutable: true) {
+type Burn @entity {
   # transaction hash + "#" + index in mints Transaction array
   id: ID!
   # txn burn was included in
