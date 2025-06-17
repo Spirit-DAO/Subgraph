@@ -7,6 +7,7 @@
   "scripts": {
     "codegen": "graph codegen --output-dir src/types/",
     "build": "graph build",
+    "subquery": "graph build -i https://unauthipfs.subquery.network/ipfs/api/v0",
     "create-local": "graph create iliaazhel/karasb --node http://127.0.0.1:8020",
     "create-pulse": "graph create cryptoalgebra/algebra-farming --node http://3.16.122.80:8120/",
     "deploy-pulse": "graph deploy cryptoalgebra/algebra-farming --debug --ipfs http://3.16.122.80:5101 --node http://3.16.122.80:8120/",
